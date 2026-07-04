@@ -1,0 +1,92 @@
+{
+    "CRISIS": {
+        "ABC_FA_Scout": {
+            "alpha": 0.05,
+            "b0": 1.4,
+            "gamma": 1.4,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_Scout_Gravitacional": {
+            "G": 0.3,
+            "alpha": 0.05,
+            "epsilon": 1e-10,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_FA_Bacanin": {
+            "alpha": 0.025,
+            "b0": 1.0,
+            "gamma": 1.6,
+            "max_itrs": 60,
+            "numb_bees": 25
+        },
+        "ABC_Original": {
+            "max_itrs": 70,
+            "max_trials_factor": 0.6,
+            "numb_bees": 20
+        }
+    },
+    "STABLE_GROWTH": {
+        "ABC_FA_Scout": {
+            "alpha": 0.05,
+            "b0": 0.95,
+            "gamma": 1.4,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_Scout_Gravitacional": {
+            "G": 0.3,
+            "alpha": 0.05,
+            "epsilon": 1e-12,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_FA_Bacanin": {
+            "alpha": 0.025,
+            "b0": 1.0,
+            "gamma": 1.4,
+            "max_itrs": 60,
+            "numb_bees": 25
+        },
+        "ABC_Original": {
+            "max_itrs": 70,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        }
+    },
+    "UNCERTAINTY": {
+        "ABC_FA_Scout": {
+            "alpha": 0.05,
+            "b0": 1.25,
+            "gamma": 1.2,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_Scout_Gravitacional": {
+            "G": 0.7,
+            "alpha": 0.05,
+            "epsilon": 1e-10,
+            "max_itrs": 60,
+            "max_trials_factor": 0.6,
+            "numb_bees": 25
+        },
+        "ABC_FA_Bacanin": {
+            "alpha": 0.03,
+            "b0": 1.2,
+            "gamma": 1.2,
+            "max_itrs": 60,
+            "numb_bees": 25
+        },
+        "ABC_Original": {
+            "max_itrs": 70,
+            "max_trials_factor": 0.6,
+            "numb_bees": 30
+        }
+    }
+}

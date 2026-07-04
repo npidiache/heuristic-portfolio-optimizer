@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABC Hybrid Portfolio Optimization | Thesis Presentation</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-light: #2A3A8F;
+    --ice: #CADCFC;
+    --teal: #028090;
+    --mint: #02C39A;
+    --coral: #F96167;
+    --gold: #F9E795;
+    --bg: #F5F6FA;
+    --card: #FFFFFF;
+    --text: #2D3142;
+    --muted: #8E94A7;
+    --border: #E8EAF0;
+    --success: #02C39A;
+    --warning: #F9A825;
+    --danger: #F96167;
+    --canvas-bg: #0F172A;
+    --canvas-grid: rgba(255,255,255,0.04);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white; padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--mint); font-weight: 400; }
+  .header-pills { display: flex; gap: 10px; }
+  .pill { background: rgba(255,255,255,0.12); padding: 4px 14px; border-radius: 20px; font-size: 11px; color: var(--ice); }
+
+  /* NAV */
+  .nav { background: white; border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; gap: 0; }
+  .nav-item {
+    padding: 13px 22px; font-size: 13px; font-weight: 500; color: var(--muted);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none;
+  }
+  .nav-item.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .nav-item:hover { color: var(--text); }
+
+  /* LAYOUT */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 40px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 20px 24px; }
+  .card h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .card h3 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* GRIDS */
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+
+  /* === TAB 1: VISUALIZATION === */
+  .sim-controls {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+    background: white; border-radius: 10px; border: 1px solid var(--border); padding: 14px 20px;
+  }
+  .sim-controls .btn {
+    padding: 7px 18px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { background: #026d7a; }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border) !important; }
+  .btn-secondary:hover { background: #e2e5eb; }
+  .btn-danger { background: var(--coral); color: white; }
+  .btn-danger:hover { background: #e04e54; }
+  .speed-control { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .speed-control label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .speed-control input[type=range] { width: 100px; accent-color: var(--teal); }
+
+  .canvas-wrapper {
+    background: var(--canvas-bg); border-radius: 10px; overflow: hidden;
+    position: relative; aspect-ratio: 4/3;
+  }
+  .canvas-wrapper canvas { width: 100%; height: 100%; display: block; }
+  .canvas-label {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(0,0,0,0.6); color: white; padding: 4px 12px;
+    border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+  }
+  .canvas-label .algo-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .phase-indicator {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px;
+  }
+  .phase-pill {
+    padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 600;
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); transition: all 0.3s;
+  }
+  .phase-pill.active { background: var(--teal); color: white; }
+
+  /* Metric comparison cards below canvases */
+  .metric-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .metric-card { text-align: center; }
+  .metric-card .val { font-size: 28px; font-weight: 700; line-height: 1.2; }
+  .metric-card .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-card.best .val { color: var(--success); }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; justify-content: center; margin: 14px 0 6px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* === TAB 2: RESULTS === */
+  .controls-bar {
+    display: flex; gap: 12px; margin-bottom: 20px; align-items: center;
+  }
+  .control-group {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .control-group label { font-size: 11px; font-weight: 600; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
+  .control-group select {
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px;
+    background: var(--bg); color: var(--navy); font-size: 12px; outline: none;
+  }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 9px 12px; text-align: left; }
+  th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); background: var(--bg); }
+  tbody tr:hover { background: #f8f9fb; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .val-best { font-weight: 700; color: var(--teal); }
+
+  /* Stat cards for results */
+  .stat-card { text-align: left; }
+  .stat-card .value { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  .stat-card .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  @media (max-width: 900px) {
+    .grid-3, .grid-2, .grid-4, .metric-row { grid-template-columns: 1fr; }
+    .container { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>ABC Hybrid Portfolio Optimization <span>| Thesis Defense</span></h1>
+  <div class="header-pills">
+    <span class="pill">NASDAQ-100</span>
+    <span class="pill">4 Market Regimes</span>
+    <span class="pill">Swarm Intelligence</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-item active" data-tab="visualization">Algorithm Visualization</div>
+  <div class="nav-item" data-tab="results">Backtest Results</div>
+</div>
+
+<div class="container">
+
+<!-- ==================== TAB 1: VISUALIZATION ==================== -->
+<div class="tab-content active" id="tab-visualization">
+
+  <!-- Controls -->
+  <div class="sim-controls">
+    <button class="btn btn-primary" id="btnPlayPause">&#9654; Play</button>
+    <button class="btn btn-secondary" id="btnStep">Step</button>
+    <button class="btn btn-danger" id="btnReset">Reset</button>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
+    <span style="font-size:11px;color:var(--muted);">CLICK canvas to add optima &bull; DOUBLE-CLICK to remove</span>
+    <div class="speed-control">
+      <label>Speed</label>
+      <input type="range" id="speedSlider" min="50" max="1500" value="400">
+    </div>
+  </div>
+
+  <!-- 3 Canvases -->
+  <div class="grid-3">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="canvas-wrapper">
+        <canvas id="canvas0"></canvas>
+        <div class="canvas-label"><span class="algo-dot" style="background:#6366f1;"></span>ABC Original</div>
+        <div class="phase-indicator" id="phase0">
+          <span class="phase-pill" data-phase="employed">Employed</span>
+          <span class="phase-pill" data-phase="onlooker">Onlooker</span>
+          <span class="phase-pill" data-phase="scout">Scout</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="canvas-wrapper">
+        <canvas id="canvas1"></canvas>
+        <div class="canvas-label"><span class="algo-dot" style="background:#f59e0b;"></span>ABC-FA Scout</div>
+        <div class="phase-indicator" id="phase1">
+          <span class="phase-pill" data-phase="employed">Employed</span>
+          <span class="phase-pill" data-phase="onlooker">Onlooker</span>
+          <span class="phase-pill" data-phase="scout">Scout</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="canvas-wrapper">
+        <canvas id="canvas2"></canvas>
+        <div class="canvas-label"><span class="algo-dot" style="background:#ef4444;"></span>ABC Gravitational</div>
+        <div class="phase-indicator" id="phase2">
+          <span class="phase-pill" data-phase="employed">Employed</span>
+          <span class="phase-pill" data-phase="onlooker">Onlooker</span>
+          <span class="phase-pill" data-phase="scout">Scout</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#6366f1;"></div>Employed Bees</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div>Onlooker Bees</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div>Scout Bees</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;border:2px solid #f59e0b;"></div>Global Optima</div>
+  </div>
+
+  <!-- Comparative Metrics -->
+  <div class="grid-3" id="compMetrics">
+    <div class="card metric-card" id="metricCard0">
+      <h3><span class="dot" style="background:#6366f1;"></span>ABC Original</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+        <div><div class="val" id="m0fit">-</div><div class="lbl">Best Fitness</div></div>
+        <div><div class="val" id="m0div">-</div><div class="lbl">Diversity</div></div>
+        <div><div class="val" id="m0iter">0</div><div class="lbl">Iteration</div></div>
+      </div>
+    </div>
+    <div class="card metric-card" id="metricCard1">
+      <h3><span class="dot" style="background:#f59e0b;"></span>ABC-FA Scout</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+        <div><div class="val" id="m1fit">-</div><div class="lbl">Best Fitness</div></div>
+        <div><div class="val" id="m1div">-</div><div class="lbl">Diversity</div></div>
+        <div><div class="val" id="m1iter">0</div><div class="lbl">Iteration</div></div>
+      </div>
+    </div>
+    <div class="card metric-card" id="metricCard2">
+      <h3><span class="dot" style="background:#ef4444;"></span>ABC Gravitational</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+        <div><div class="val" id="m2fit">-</div><div class="lbl">Best Fitness</div></div>
+        <div><div class="val" id="m2div">-</div><div class="lbl">Diversity</div></div>
+        <div><div class="val" id="m2iter">0</div><div class="lbl">Iteration</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-visualization -->
+
+<!-- ==================== TAB 2: RESULTS ==================== -->
+<div class="tab-content" id="tab-results">
+
+  <div class="controls-bar">
+    <div class="control-group">
+      <label>Universe</label>
+      <select id="universeSelect">
+        <option value="dynamic">Dynamic Z-Score (prices)</option>
+        <option value="fixed">Fixed Z-Score (fundamentals)</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Period</label>
+      <select id="periodSelect">
+        <option value="2023_stability">Stable Growth (2023-2024)</option>
+        <option value="covid_2020">COVID-19 (2020)</option>
+        <option value="gfc_2007_2009">GFC (2007-2009)</option>
+        <option value="war_2022">War Shock (2022)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI summary -->
+  <div class="grid-4" id="kpiCards">
+    <div class="card stat-card"><div class="label">Best Sortino</div><div class="value" id="kpiBestSortino" style="color:var(--teal);">-</div><div class="label" id="kpiBestSortinoAlg">-</div></div>
+    <div class="card stat-card"><div class="label">Lowest Drawdown</div><div class="value" id="kpiBestDD" style="color:var(--teal);">-</div><div class="label" id="kpiBestDDAlg">-</div></div>
+    <div class="card stat-card"><div class="label">Highest Alpha</div><div class="value" id="kpiBestAlpha" style="color:var(--teal);">-</div><div class="label" id="kpiBestAlphaAlg">-</div></div>
+    <div class="card stat-card"><div class="label">Best Omega</div><div class="value" id="kpiBestOmega" style="color:var(--teal);">-</div><div class="label" id="kpiBestOmegaAlg">-</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid-2">
+    <div class="card"><h3><span class="dot" style="background:var(--teal);"></span>Sortino Ratio</h3><div style="height:200px;"><canvas id="sortinoChart"></canvas></div></div>
+    <div class="card"><h3><span class="dot" style="background:var(--coral);"></span>Max Drawdown</h3><div style="height:200px;"><canvas id="drawdownChart"></canvas></div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><h3><span class="dot" style="background:var(--warning);"></span>Jensen Alpha (Annualized)</h3><div style="height:200px;"><canvas id="alphaChart"></canvas></div></div>
+    <div class="card"><h3><span class="dot" style="background:var(--navy);"></span>Omega Ratio</h3><div style="height:200px;"><canvas id="omegaChart"></canvas></div></div>
+  </div>
+
+  <!-- Performance Table -->
+  <div class="card" style="margin-bottom:20px;">
+    <h3><span class="dot" style="background:var(--navy);"></span>Performance Metrics</h3>
+    <table id="perfTable">
+      <thead><tr><th>Algorithm</th><th>Sortino</th><th>Max Drawdown</th><th>Jensen Alpha</th><th>Omega</th></tr></thead>
+      <tbody id="perfBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Cardinality Table -->
+  <div class="card">
+    <h3><span class="dot" style="background:var(--mint);"></span>Cardinality & Concentration</h3>
+    <table id="cardTable">
+      <thead><tr><th>Algorithm</th><th>Cardinality</th><th>Max Weight</th><th>HHI</th><th>Sortino</th><th>Max Drawdown</th></tr></thead>
+      <tbody id="cardBody"></tbody>
+    </table>
+  </div>
+
+</div><!-- /tab-results -->
+
+</div><!-- /container -->
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+// =====================================================================
+// TAB NAVIGATION
+// =====================================================================
+document.querySelectorAll('.nav-item').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// =====================================================================
+// TAB 1: ALGORITHM VISUALIZATION (3 synced canvases)
+// =====================================================================
+const ALGO_NAMES = ['random', 'leader', 'gravitational'];
+const ALGO_LABELS = ['ABC Original', 'ABC-FA Scout', 'ABC Gravitational'];
+const ALGO_COLORS_VIZ = ['#6366f1', '#f59e0b', '#ef4444'];
+const NUM_BEES = 24;
+const NUM_EMPLOYED = 10;
+const NUM_ONLOOKERS = 6;
+const MAX_TRIALS = 5;
+const K_TOP = 3;
+
+let optima = [
+  { x: 0.25, y: 0.3, strength: 1.0, spread: 0.15 },
+  { x: 0.75, y: 0.7, strength: 0.8, spread: 0.12 }
+];
+
+function calcFitness(px, py) {
+  let f = 0;
+  optima.forEach(o => { f += o.strength * Math.exp(-((px-o.x)**2 + (py-o.y)**2) / (2 * o.spread**2)); });
+  return f;
+}
+
+class Bee {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random(); this.y = Math.random();
+    this.vx = 0; this.vy = 0;
+    this.fitness = calcFitness(this.x, this.y);
+    this.trials = 0;
+    this.type = 'employed';
+    this.trail = [{x:this.x, y:this.y}];
+  }
+  updateFitness() { this.fitness = calcFitness(this.x, this.y); }
+  findNeighbor(radius) {
+    const nx = this.x + (Math.random()-0.5)*radius*2;
+    const ny = this.y + (Math.random()-0.5)*radius*2;
+    return { x: nx, y: ny, fitness: calcFitness(nx, ny) };
+  }
+}
+
+class Swarm {
+  constructor(canvasId, phaseId, algoType, idx) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.phaseEl = document.getElementById(phaseId);
+    this.algoType = algoType;
+    this.idx = idx;
+    this.bees = [];
+    this.iteration = 0;
+    this.currentPhase = 'employed';
+    this.bestFitness = 0;
+    this.diversity = 0;
+    this.reset();
+  }
+
+  reset() {
+    this.bees = Array.from({length: NUM_BEES}, () => new Bee());
+    this.iteration = 0;
+    this.bestFitness = 0;
+    this.diversity = 0;
+    this.resize();
+  }
+
+  resize() {
+    const rect = this.canvas.parentElement.getBoundingClientRect();
+    this.canvas.width = rect.width;
+    this.canvas.height = rect.height;
+  }
+
+  step() {
+    this.iteration++;
+    const bees = this.bees;
+    const radius = 0.15;
+
+    // Phase 1: Employed - local neighborhood search
+    this.setPhase('employed');
+    for (let i = 0; i < NUM_EMPLOYED; i++) {
+      bees[i].type = 'employed';
+      const n = bees[i].findNeighbor(radius);
+      if (n.fitness > bees[i].fitness) {
+        bees[i].x = n.x; bees[i].y = n.y; bees[i].trials = 0;
+      } else { bees[i].trials++; }
+      bees[i].updateFitness();
+    }
+
+    // Phase 2: Onlookers - follow best employed bees (roulette selection)
+    this.setPhase('onlooker');
+    const totalFit = bees.slice(0, NUM_EMPLOYED).reduce((s,b) => s + b.fitness, 0);
+    for (let i = NUM_EMPLOYED; i < NUM_EMPLOYED + NUM_ONLOOKERS; i++) {
+      bees[i].type = 'onlooker';
+      let r = Math.random() * totalFit, sel = 0;
+      for (let j = 0; j < NUM_EMPLOYED; j++) { r -= bees[j].fitness; if (r <= 0) { sel = j; break; } }
+      const n = bees[sel].findNeighbor(radius);
+      if (n.fitness > bees[i].fitness) {
+        bees[i].x = n.x; bees[i].y = n.y; bees[i].trials = 0;
+      } else { bees[i].trials++; }
+      bees[i].updateFitness();
+    }
+
+    // Phase 3: Scout replacement - find the MOST stagnated bee in the ENTIRE swarm
+    // and replace it using algorithm-specific logic. This matches the real ABC:
+    // send_scout() finds max(trials) across ALL bees and replaces that one.
+    this.setPhase('scout');
+    // Also: dedicated scout bees do local search first
+    for (let i = NUM_EMPLOYED + NUM_ONLOOKERS; i < NUM_BEES; i++) {
+      bees[i].type = 'scout';
+      const n = bees[i].findNeighbor(radius);
+      if (n.fitness > bees[i].fitness) {
+        bees[i].x = n.x; bees[i].y = n.y; bees[i].trials = 0;
+      } else { bees[i].trials++; }
+      bees[i].updateFitness();
+    }
+    // Find and replace the most stagnated bee (any type)
+    let worstIdx = 0, worstTrials = bees[0].trials;
+    bees.forEach((b, i) => { if (b.trials > worstTrials) { worstTrials = b.trials; worstIdx = i; } });
+    if (worstTrials >= MAX_TRIALS) {
+      bees[worstIdx].type = 'scout'; // visually mark it as scout during replacement
+      this.applyScoutLogic(bees[worstIdx]);
+      bees[worstIdx].trials = 0;
+      bees[worstIdx].updateFitness();
+    }
+
+    // Move all bees (apply velocity)
+    bees.forEach(b => {
+      b.vx *= 0.92; b.vy *= 0.92;
+      const spd = Math.sqrt(b.vx**2 + b.vy**2);
+      if (spd > 0.012) { b.vx = (b.vx/spd)*0.012; b.vy = (b.vy/spd)*0.012; }
+      b.x += b.vx; b.y += b.vy;
+      b.x = Math.max(0, Math.min(1, b.x));
+      b.y = Math.max(0, Math.min(1, b.y));
+      b.trail.push({x:b.x, y:b.y});
+      if (b.trail.length > 15) b.trail.shift();
+      b.updateFitness();
+    });
+
+    // Metrics
+    this.bestFitness = Math.max(...bees.map(b => b.fitness));
+    const cx = bees.reduce((s,b) => s+b.x, 0)/bees.length;
+    const cy = bees.reduce((s,b) => s+b.y, 0)/bees.length;
+    this.diversity = Math.sqrt(bees.reduce((s,b) => s + (b.x-cx)**2 + (b.y-cy)**2, 0) / bees.length);
+  }
+
+  applyScoutLogic(bee) {
+    if (this.algoType === 'random') {
+      // ABC Original: pure random restart
+      bee.x = Math.random(); bee.y = Math.random();
+      bee.vx = 0; bee.vy = 0;
+
+    } else if (this.algoType === 'leader') {
+      // ABC-FA Scout: softmax selection among top-k, then DIRECT position update via FA equation
+      // Matches abc_fa_scout.py: new_pos = current + b0*exp(-gamma*r^2)*(target-current) + alpha*(rand-0.5)
+      const sorted = this.bees.slice().sort((a,b) => b.fitness - a.fitness);
+      const k = Math.min(K_TOP, sorted.length);
+      const candidates = sorted.slice(0, k);
+      const maxFit = candidates[0].fitness;
+      const weights = candidates.map(b => Math.exp((b.fitness - maxFit) / 1.0));
+      const sumW = weights.reduce((s,w) => s+w, 0);
+      let u = Math.random(), acc = 0, target = candidates[k-1];
+      for (let i = 0; i < k; i++) { acc += weights[i]/sumW; if (u <= acc) { target = candidates[i]; break; } }
+      // Euclidean distance to target
+      const rr = Math.sqrt((bee.x-target.x)**2 + (bee.y-target.y)**2);
+      // FA movement equation: direct position jump (no velocity accumulation)
+      // b0, gamma match source code. alpha scaled for 2D (in 20D, 0.2 per dim is small; in 2D it's huge)
+      const b0 = 1.1, gamma = 1.4, alpha_fa = 0.05;
+      const attraction = b0 * Math.exp(-gamma * rr * rr);
+      bee.x += attraction * (target.x - bee.x) + alpha_fa * (Math.random()-0.5);
+      bee.y += attraction * (target.y - bee.y) + alpha_fa * (Math.random()-0.5);
+      bee.vx = 0; bee.vy = 0;
+
+    } else if (this.algoType === 'gravitational') {
+      // ABC-GSA: net gravitational force from ENTIRE swarm, then NORMALIZE before moving
+      // Matches abc_scout_gravitacional.py: F = G*(m_scout*m_target)/(r^2+eps), then normalize net force
+      let fx = 0, fy = 0;
+      const G = 1.0, eps = 1e-10, alpha_g = 0.1;
+      const massBee = bee.fitness * bee.fitness; // mass = fitness^2 for stronger attraction to high-fitness regions
+      this.bees.forEach(other => {
+        if (other === bee) return;
+        const dx = other.x - bee.x, dy = other.y - bee.y;
+        const distSq = dx*dx + dy*dy;
+        const dist = Math.sqrt(distSq);
+        if (dist < eps) return;
+        const massOther = other.fitness * other.fitness;
+        // Newton: F = G * m1 * m2 / (r^2 + eps)
+        const forceMag = G * massBee * massOther / (distSq + eps);
+        // Direction: unit vector toward other
+        fx += forceMag * dx / dist;
+        fy += forceMag * dy / dist;
+      });
+      // NORMALIZE the net force vector (key difference from FA Scout)
+      // Then scale to a reasonable step size for 2D visualization
+      // In the real algorithm (20+ dimensions), a unit vector step is small per dimension.
+      // In 2D, we scale it down so the movement is smooth and cooperative, not erratic.
+      const fMag = Math.sqrt(fx*fx + fy*fy);
+      if (fMag > 0) { fx /= fMag; fy /= fMag; }
+      const stepScale = 0.15; // Strong enough to show herd movement toward swarm center of mass
+      bee.x += fx * stepScale + alpha_g * (Math.random()-0.5) * 0.3;
+      bee.y += fy * stepScale + alpha_g * (Math.random()-0.5) * 0.3;
+      bee.vx = 0; bee.vy = 0;
+    }
+  }
+
+  setPhase(phase) {
+    this.currentPhase = phase;
+    this.phaseEl.querySelectorAll('.phase-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.phase === phase);
+    });
+  }
+
+  draw() {
+    const w = this.canvas.width, h = this.canvas.height;
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, w, h);
+
+    // Background
+    ctx.fillStyle = var_canvas_bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+      ctx.beginPath(); ctx.moveTo(i*w/10, 0); ctx.lineTo(i*w/10, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i*h/10); ctx.lineTo(w, i*h/10); ctx.stroke();
+    }
+
+    // Optima glow
+    optima.forEach(o => {
+      const grad = ctx.createRadialGradient(o.x*w, o.y*h, 0, o.x*w, o.y*h, o.spread*w*2.5);
+      grad.addColorStop(0, `rgba(251,191,36,${o.strength*0.5})`);
+      grad.addColorStop(1, 'rgba(251,191,36,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      // Center dot
+      ctx.beginPath(); ctx.arc(o.x*w, o.y*h, 5, 0, Math.PI*2);
+      ctx.fillStyle = '#fbbf24'; ctx.fill();
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // Bees
+    let bestIdx = 0, bestFit = -1;
+    this.bees.forEach((b,i) => { if (b.fitness > bestFit) { bestFit = b.fitness; bestIdx = i; } });
+
+    this.bees.forEach((b, i) => {
+      // Trail
+      if (b.trail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(b.trail[0].x*w, b.trail[0].y*h);
+        for (let j = 1; j < b.trail.length; j++) ctx.lineTo(b.trail[j].x*w, b.trail[j].y*h);
+        ctx.strokeStyle = b.type === 'scout' ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = b.type === 'scout' ? 2 : 1;
+        ctx.stroke();
+      }
+      // Dot
+      const isBest = (i === bestIdx);
+      const r = isBest ? 9 : (b.type === 'scout' ? 7 : 5);
+      ctx.beginPath(); ctx.arc(b.x*w, b.y*h, r, 0, Math.PI*2);
+      if (isBest) { ctx.fillStyle = '#fbbf24'; ctx.strokeStyle = '#f59e0b'; }
+      else if (b.type === 'scout') { ctx.fillStyle = '#ef4444'; ctx.strokeStyle = '#dc2626'; }
+      else if (b.type === 'onlooker') { ctx.fillStyle = '#10b981'; ctx.strokeStyle = '#059669'; }
+      else { ctx.fillStyle = '#6366f1'; ctx.strokeStyle = '#4f46e5'; }
+      ctx.globalAlpha = 0.9; ctx.fill();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.stroke();
+    });
+  }
+
+  updateMetricDisplay() {
+    document.getElementById(`m${this.idx}fit`).textContent = this.bestFitness.toFixed(3);
+    document.getElementById(`m${this.idx}div`).textContent = this.diversity.toFixed(3);
+    document.getElementById(`m${this.idx}iter`).textContent = this.iteration;
+  }
+}
+
+const var_canvas_bg = '#0F172A';
+const swarms = [
+  new Swarm('canvas0', 'phase0', 'random', 0),
+  new Swarm('canvas1', 'phase1', 'leader', 1),
+  new Swarm('canvas2', 'phase2', 'gravitational', 2),
+];
+
+let isPlaying = false;
+let simInterval = null;
+let animFrame = null;
+
+function simStep() {
+  swarms.forEach(s => s.step());
+  needsRedraw = true;
+  // Highlight best fitness
+  const fits = swarms.map(s => s.bestFitness);
+  const maxFit = Math.max(...fits);
+  swarms.forEach((s, i) => {
+    const el = document.getElementById(`m${i}fit`);
+    el.style.color = (Math.abs(s.bestFitness - maxFit) < 1e-6) ? 'var(--success)' : 'var(--text)';
+    el.style.fontWeight = (Math.abs(s.bestFitness - maxFit) < 1e-6) ? '700' : '400';
+    s.updateMetricDisplay();
+  });
+}
+
+let needsRedraw = true;
+function animLoop() {
+  if (needsRedraw) { swarms.forEach(s => s.draw()); needsRedraw = false; }
+  animFrame = requestAnimationFrame(animLoop);
+}
+
+function startSim() {
+  if (simInterval) clearInterval(simInterval);
+  const speed = 2050 - parseInt(document.getElementById('speedSlider').value);
+  simInterval = setInterval(simStep, speed);
+  isPlaying = true;
+  document.getElementById('btnPlayPause').innerHTML = '&#9646;&#9646; Pause';
+}
+
+function stopSim() {
+  if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  isPlaying = false;
+  document.getElementById('btnPlayPause').innerHTML = '&#9654; Play';
+}
+
+document.getElementById('btnPlayPause').addEventListener('click', () => { isPlaying ? stopSim() : startSim(); });
+document.getElementById('btnStep').addEventListener('click', () => { stopSim(); simStep(); });
+document.getElementById('btnReset').addEventListener('click', () => {
+  stopSim();
+  optima = [
+    { x: 0.25, y: 0.3, strength: 1.0, spread: 0.15 },
+    { x: 0.75, y: 0.7, strength: 0.8, spread: 0.12 }
+  ];
+  swarms.forEach(s => s.reset());
+  swarms.forEach(s => s.updateMetricDisplay());
+});
+document.getElementById('speedSlider').addEventListener('input', () => { if (isPlaying) startSim(); });
+
+// Sync click/dblclick across all canvases
+document.querySelectorAll('.canvas-wrapper canvas').forEach(cvs => {
+  cvs.addEventListener('click', e => {
+    const rect = cvs.getBoundingClientRect();
+    optima.push({ x: (e.clientX-rect.left)/rect.width, y: (e.clientY-rect.top)/rect.height, strength: 0.5+Math.random()*0.4, spread: 0.08+Math.random()*0.05 });
+    // Simulate regime change: force all bees to re-evaluate by maxing their trial counters.
+    // This triggers scout replacement logic on the next iteration, letting us see
+    // how each algorithm reacts to a new opportunity (analogous to a volatility shock).
+    swarms.forEach(s => s.bees.forEach(b => { b.trials = MAX_TRIALS; }));
+    needsRedraw = true;
+  });
+  cvs.addEventListener('dblclick', e => {
+    const rect = cvs.getBoundingClientRect();
+    const cx = (e.clientX-rect.left)/rect.width, cy = (e.clientY-rect.top)/rect.height;
+    let closest = -1, minD = Infinity;
+    optima.forEach((o,i) => { const d = Math.sqrt((cx-o.x)**2+(cy-o.y)**2); if (d < minD) { minD = d; closest = i; } });
+    if (closest >= 0 && minD < 0.1) { optima.splice(closest, 1); needsRedraw = true; }
+  });
+});
+
+window.addEventListener('resize', () => swarms.forEach(s => s.resize()));
+animLoop();
+
+// =====================================================================
+// TAB 2: BACKTEST RESULTS
+// =====================================================================
+const ALG_COLORS_CHART = {
+  'ABC_Original': '#3A86FF',
+  'ABC_FA_Bacanin': '#52B69A',
+  'ABC_FA_Scout': '#2D3748',
+  'ABC_Scout_Gravitacional': '#A0AEC0',
+  'PMVG_CVX': '#D6BCFA',
+  'Equally_Weighted': '#4A5568'
+};
+const ALG_ORDER = ['ABC_Original','ABC_FA_Bacanin','ABC_FA_Scout','ABC_Scout_Gravitacional','PMVG_CVX','Equally_Weighted'];
+const ALG_SHORT = { ABC_Original:'ABC Orig', ABC_FA_Bacanin:'ABC-FA Bac', ABC_FA_Scout:'ABC-FA Scout', ABC_Scout_Gravitacional:'ABC-GSA', PMVG_CVX:'PMVG', Equally_Weighted:'1/N' };
+
+const DATA = {
+  dynamic: {
+    metrics: {
+      covid_2020: [
+        {A:'ABC_Original',s:3.937,d:-0.357,a:1.163,o:1.558},{A:'ABC_FA_Bacanin',s:2.102,d:-0.333,a:0.474,o:1.302},
+        {A:'ABC_FA_Scout',s:3.787,d:-0.334,a:1.099,o:1.526},{A:'ABC_Scout_Gravitacional',s:3.822,d:-0.376,a:1.164,o:1.540},
+        {A:'PMVG_CVX',s:2.669,d:-0.219,a:0.474,o:1.395},{A:'Equally_Weighted',s:1.927,d:-0.309,a:0.379,o:1.280}
+      ],
+      gfc_2007_2009: [
+        {A:'ABC_Original',s:-0.104,d:-0.486,a:0.359,o:0.988},{A:'ABC_FA_Bacanin',s:-0.551,d:-0.530,a:0.239,o:0.933},
+        {A:'ABC_FA_Scout',s:-0.215,d:-0.501,a:0.330,o:0.974},{A:'ABC_Scout_Gravitacional',s:-0.271,d:-0.493,a:0.314,o:0.967},
+        {A:'PMVG_CVX',s:-0.957,d:-0.504,a:0.091,o:0.889},{A:'Equally_Weighted',s:-0.849,d:-0.569,a:0.166,o:0.898}
+      ],
+      war_2022: [
+        {A:'ABC_Original',s:0.758,d:-0.232,a:0.432,o:1.087},{A:'ABC_FA_Bacanin',s:-0.076,d:-0.280,a:0.266,o:0.992},
+        {A:'ABC_FA_Scout',s:0.544,d:-0.256,a:0.429,o:1.061},{A:'ABC_Scout_Gravitacional',s:0.978,d:-0.191,a:0.518,o:1.110},
+        {A:'PMVG_CVX',s:0.265,d:-0.242,a:0.201,o:1.032},{A:'Equally_Weighted',s:-0.361,d:-0.314,a:0.210,o:0.961}
+      ],
+      '2023_stability': [
+        {A:'ABC_Original',s:4.003,d:-0.105,a:0.260,o:1.495},{A:'ABC_FA_Bacanin',s:2.313,d:-0.078,a:0.026,o:1.281},
+        {A:'ABC_FA_Scout',s:4.143,d:-0.094,a:0.247,o:1.516},{A:'ABC_Scout_Gravitacional',s:4.153,d:-0.102,a:0.298,o:1.515},
+        {A:'PMVG_CVX',s:2.090,d:-0.069,a:0.056,o:1.257},{A:'Equally_Weighted',s:2.239,d:-0.070,a:0.021,o:1.272}
+      ]
+    },
+    cardinality: {
+      covid_2020: [
+        {A:'ABC_Original',c:8,mw:0.216,hhi:0.179,s:3.937,d:-0.357},{A:'ABC_FA_Bacanin',c:16,mw:0.119,hhi:0.090,s:2.102,d:-0.333},
+        {A:'ABC_FA_Scout',c:9,mw:0.197,hhi:0.164,s:3.787,d:-0.334},{A:'ABC_Scout_Gravitacional',c:10,mw:0.216,hhi:0.179,s:3.822,d:-0.376},
+        {A:'PMVG_CVX',c:5,mw:0.333,hhi:0.242,s:2.669,d:-0.219},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:1.927,d:-0.309}
+      ],
+      gfc_2007_2009: [
+        {A:'ABC_Original',c:9,mw:0.188,hhi:0.166,s:-0.104,d:-0.486},{A:'ABC_FA_Bacanin',c:18,mw:0.129,hhi:0.084,s:-0.551,d:-0.530},
+        {A:'ABC_FA_Scout',c:10,mw:0.145,hhi:0.117,s:-0.215,d:-0.501},{A:'ABC_Scout_Gravitacional',c:12,mw:0.146,hhi:0.108,s:-0.271,d:-0.493},
+        {A:'PMVG_CVX',c:8,mw:0.354,hhi:0.217,s:-0.957,d:-0.504},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:-0.849,d:-0.569}
+      ],
+      war_2022: [
+        {A:'ABC_Original',c:8,mw:0.178,hhi:0.146,s:0.758,d:-0.232},{A:'ABC_FA_Bacanin',c:19,mw:0.104,hhi:0.077,s:-0.076,d:-0.280},
+        {A:'ABC_FA_Scout',c:10,mw:0.179,hhi:0.141,s:0.544,d:-0.256},{A:'ABC_Scout_Gravitacional',c:8,mw:0.225,hhi:0.178,s:0.978,d:-0.191},
+        {A:'PMVG_CVX',c:4,mw:0.577,hhi:0.442,s:0.265,d:-0.242},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:-0.361,d:-0.314}
+      ],
+      '2023_stability': [
+        {A:'ABC_Original',c:9,mw:0.251,hhi:0.192,s:4.003,d:-0.105},{A:'ABC_FA_Bacanin',c:19,mw:0.103,hhi:0.078,s:2.313,d:-0.078},
+        {A:'ABC_FA_Scout',c:8,mw:0.253,hhi:0.162,s:4.143,d:-0.094},{A:'ABC_Scout_Gravitacional',c:5,mw:0.300,hhi:0.241,s:4.153,d:-0.102},
+        {A:'PMVG_CVX',c:16,mw:0.254,hhi:0.126,s:2.090,d:-0.069},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:2.239,d:-0.070}
+      ]
+    }
+  },
+  fixed: {
+    metrics: {
+      covid_2020: [
+        {A:'ABC_Original',s:4.648,d:-0.188,a:1.065,o:1.630},{A:'ABC_FA_Bacanin',s:2.410,d:-0.268,a:0.473,o:1.341},
+        {A:'ABC_FA_Scout',s:4.290,d:-0.195,a:0.980,o:1.576},{A:'ABC_Scout_Gravitacional',s:4.484,d:-0.188,a:1.055,o:1.591},
+        {A:'PMVG_CVX',s:3.808,d:-0.126,a:0.676,o:1.518},{A:'Equally_Weighted',s:2.079,d:-0.254,a:0.367,o:1.303}
+      ],
+      gfc_2007_2009: [
+        {A:'ABC_Original',s:0.361,d:-0.364,a:0.403,o:1.045},{A:'ABC_FA_Bacanin',s:-0.161,d:-0.425,a:0.341,o:0.981},
+        {A:'ABC_FA_Scout',s:0.342,d:-0.359,a:0.405,o:1.042},{A:'ABC_Scout_Gravitacional',s:0.324,d:-0.358,a:0.380,o:1.040},
+        {A:'PMVG_CVX',s:-0.135,d:-0.399,a:0.252,o:0.983},{A:'Equally_Weighted',s:-0.513,d:-0.519,a:0.259,o:0.940}
+      ],
+      war_2022: [
+        {A:'ABC_Original',s:0.744,d:-0.153,a:0.291,o:1.095},{A:'ABC_FA_Bacanin',s:0.127,d:-0.180,a:0.236,o:1.015},
+        {A:'ABC_FA_Scout',s:0.811,d:-0.136,a:0.337,o:1.100},{A:'ABC_Scout_Gravitacional',s:0.669,d:-0.132,a:0.252,o:1.083},
+        {A:'PMVG_CVX',s:-0.333,d:-0.128,a:0.035,o:0.961},{A:'Equally_Weighted',s:-0.466,d:-0.196,a:0.129,o:0.949}
+      ],
+      '2023_stability': [
+        {A:'ABC_Original',s:4.896,d:-0.149,a:0.351,o:1.616},{A:'ABC_FA_Bacanin',s:3.727,d:-0.083,a:0.119,o:1.481},
+        {A:'ABC_FA_Scout',s:4.888,d:-0.148,a:0.331,o:1.616},{A:'ABC_Scout_Gravitacional',s:5.011,d:-0.135,a:0.329,o:1.637},
+        {A:'PMVG_CVX',s:1.941,d:-0.061,a:0.029,o:1.243},{A:'Equally_Weighted',s:3.305,d:-0.079,a:0.075,o:1.414}
+      ]
+    },
+    cardinality: {
+      covid_2020: [
+        {A:'ABC_Original',c:10,mw:0.233,hhi:0.188,s:4.648,d:-0.188},{A:'ABC_FA_Bacanin',c:18,mw:0.112,hhi:0.077,s:2.410,d:-0.268},
+        {A:'ABC_FA_Scout',c:8,mw:0.197,hhi:0.161,s:4.290,d:-0.195},{A:'ABC_Scout_Gravitacional',c:7,mw:0.259,hhi:0.220,s:4.484,d:-0.188},
+        {A:'PMVG_CVX',c:6,mw:0.297,hhi:0.218,s:3.808,d:-0.126},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:2.079,d:-0.254}
+      ],
+      gfc_2007_2009: [
+        {A:'ABC_Original',c:4,mw:0.267,hhi:0.253,s:0.361,d:-0.364},{A:'ABC_FA_Bacanin',c:16,mw:0.133,hhi:0.099,s:-0.161,d:-0.425},
+        {A:'ABC_FA_Scout',c:7,mw:0.262,hhi:0.224,s:0.342,d:-0.359},{A:'ABC_Scout_Gravitacional',c:5,mw:0.340,hhi:0.262,s:0.324,d:-0.358},
+        {A:'PMVG_CVX',c:5,mw:0.366,hhi:0.292,s:-0.135,d:-0.399},{A:'Equally_Weighted',c:16,mw:0.063,hhi:0.063,s:-0.513,d:-0.519}
+      ],
+      war_2022: [
+        {A:'ABC_Original',c:9,mw:0.234,hhi:0.175,s:0.744,d:-0.153},{A:'ABC_FA_Bacanin',c:20,mw:0.160,hhi:0.104,s:0.127,d:-0.180},
+        {A:'ABC_FA_Scout',c:11,mw:0.198,hhi:0.169,s:0.811,d:-0.136},{A:'ABC_Scout_Gravitacional',c:10,mw:0.205,hhi:0.156,s:0.669,d:-0.132},
+        {A:'PMVG_CVX',c:7,mw:0.417,hhi:0.250,s:-0.333,d:-0.128},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:-0.466,d:-0.196}
+      ],
+      '2023_stability': [
+        {A:'ABC_Original',c:8,mw:0.314,hhi:0.236,s:4.896,d:-0.149},{A:'ABC_FA_Bacanin',c:19,mw:0.128,hhi:0.081,s:3.727,d:-0.083},
+        {A:'ABC_FA_Scout',c:8,mw:0.291,hhi:0.187,s:4.888,d:-0.148},{A:'ABC_Scout_Gravitacional',c:10,mw:0.268,hhi:0.167,s:5.011,d:-0.135},
+        {A:'PMVG_CVX',c:14,mw:0.241,hhi:0.126,s:1.941,d:-0.061},{A:'Equally_Weighted',c:20,mw:0.050,hhi:0.050,s:3.305,d:-0.079}
+      ]
+    }
+  }
+};
+
+let charts = {};
+
+function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+function makeBarChart(canvasId, label, labels, data) {
+  return new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: labels.map(l => ALG_SHORT[l] || l),
+      datasets: [{
+        label, data,
+        backgroundColor: labels.map(l => ALG_COLORS_CHART[l] || '#ccc'),
+        borderRadius: 4, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+      scales: {
+        x: { ticks: { font: { size: 10 }, color: '#8E94A7' }, grid: { display: false } },
+        y: { ticks: { font: { size: 10 }, color: '#8E94A7' }, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  });
+}
+
+function updateResults() {
+  const uni = document.getElementById('universeSelect').value;
+  const per = document.getElementById('periodSelect').value;
+  const metrics = DATA[uni].metrics[per] || [];
+  const card = DATA[uni].cardinality[per] || [];
+
+  // KPI cards
+  if (metrics.length) {
+    const bestS = metrics.reduce((a,b) => a.s > b.s ? a : b);
+    const bestD = metrics.reduce((a,b) => Math.abs(a.d) < Math.abs(b.d) ? a : b);
+    const bestA = metrics.reduce((a,b) => a.a > b.a ? a : b);
+    const bestO = metrics.reduce((a,b) => a.o > b.o ? a : b);
+    document.getElementById('kpiBestSortino').textContent = bestS.s.toFixed(3);
+    document.getElementById('kpiBestSortinoAlg').textContent = ALG_SHORT[bestS.A] || bestS.A;
+    document.getElementById('kpiBestDD').textContent = bestD.d.toFixed(3);
+    document.getElementById('kpiBestDDAlg').textContent = ALG_SHORT[bestD.A] || bestD.A;
+    document.getElementById('kpiBestAlpha').textContent = bestA.a.toFixed(3);
+    document.getElementById('kpiBestAlphaAlg').textContent = ALG_SHORT[bestA.A] || bestA.A;
+    document.getElementById('kpiBestOmega').textContent = bestO.o.toFixed(3);
+    document.getElementById('kpiBestOmegaAlg').textContent = ALG_SHORT[bestO.A] || bestO.A;
+  }
+
+  // Charts
+  destroyCharts();
+  const labels = metrics.map(m => m.A);
+  charts.sortino = makeBarChart('sortinoChart', 'Sortino', labels, metrics.map(m => m.s));
+  charts.drawdown = makeBarChart('drawdownChart', 'Max Drawdown', labels, metrics.map(m => m.d));
+  charts.alpha = makeBarChart('alphaChart', 'Jensen Alpha', labels, metrics.map(m => m.a));
+  charts.omega = makeBarChart('omegaChart', 'Omega', labels, metrics.map(m => m.o));
+
+  // Performance table
+  const bestS = Math.max(...metrics.map(m=>m.s));
+  const bestD = Math.min(...metrics.map(m=>Math.abs(m.d)));
+  const bestA = Math.max(...metrics.map(m=>m.a));
+  const bestO = Math.max(...metrics.map(m=>m.o));
+  const pb = document.getElementById('perfBody');
+  pb.innerHTML = '';
+  metrics.forEach(m => {
+    const isBestS = Math.abs(m.s-bestS)<0.001;
+    const isBestD = Math.abs(Math.abs(m.d)-bestD)<0.001;
+    const isBestA = Math.abs(m.a-bestA)<0.001;
+    const isBestO = Math.abs(m.o-bestO)<0.001;
+    pb.innerHTML += `<tr>
+      <td><span class="swatch" style="background:${ALG_COLORS_CHART[m.A]}"></span>${ALG_SHORT[m.A]||m.A}</td>
+      <td class="${isBestS?'val-best':''}">${m.s.toFixed(3)}</td>
+      <td class="${isBestD?'val-best':''}">${m.d.toFixed(3)}</td>
+      <td class="${isBestA?'val-best':''}">${m.a.toFixed(3)}</td>
+      <td class="${isBestO?'val-best':''}">${m.o.toFixed(3)}</td>
+    </tr>`;
+  });
+
+  // Cardinality table
+  const cb = document.getElementById('cardBody');
+  cb.innerHTML = '';
+  card.forEach(m => {
+    cb.innerHTML += `<tr>
+      <td><span class="swatch" style="background:${ALG_COLORS_CHART[m.A]}"></span>${ALG_SHORT[m.A]||m.A}</td>
+      <td>${m.c}</td><td>${m.mw.toFixed(3)}</td><td>${m.hhi.toFixed(3)}</td>
+      <td>${m.s.toFixed(3)}</td><td>${m.d.toFixed(3)}</td>
+    </tr>`;
+  });
+}
+
+document.getElementById('universeSelect').addEventListener('change', updateResults);
+document.getElementById('periodSelect').addEventListener('change', updateResults);
+updateResults();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Frozen artifacts are byte-exact (SHA-256 guarded) — never normalize line endings.
+data/** -text
+thesis/** -text
+legacy/** -text
+tests/golden/** -text
+
+# Source and docs: commit with LF regardless of the contributor's platform.
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.cff text eol=lf
+.python-version text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+uv.lock text eol=lf

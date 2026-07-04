@@ -1,0 +1,91 @@
+[project]
+name = "hive-abc"
+version = "1.0.0"
+description = "Heuristic portfolio optimizer — Artificial Bee Colony variants for portfolio selection (MFIN thesis formalization)"
+readme = "README.md"
+authors = [
+    { name = "npidiache", email = "87243078+npidiache@users.noreply.github.com" }
+]
+license = { file = "LICENSE" }
+requires-python = "~=3.13.0"
+dependencies = [
+    "cvxpy~=1.9.2",
+    "numpy~=2.5.1",
+    "pandas~=3.0.3",
+    "scipy~=1.18.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "diff-cover~=10.3.0",
+    "hypothesis~=6.156.1",
+    "mypy~=2.1.0",
+    "pandas-stubs~=3.0.3",
+    "pytest~=9.1.1",
+    "pytest-cov~=7.1.0",
+    "ruff~=0.15.20",
+    "scipy-stubs~=1.18.0",
+]
+# Metric-parity checks against quantstats run once during migration (Phase 2);
+# quantstats is not a runtime dependency, so it lives in its own optional group.
+parity = [
+    "quantstats>=0.0.62",
+]
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests", "scripts"]
+target-version = "py313"
+extend-exclude = ["legacy", "notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
+
+[tool.mypy]
+python_version = "3.13"
+files = ["src", "tests", "scripts"]
+exclude = ["legacy"]
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["cvxpy.*", "quantstats.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=90 -m 'not repro and not slow and not parity'"
+testpaths = ["tests"]
+markers = [
+    "repro: full thesis-reproduction runs (hours; executed via reproduction.yml)",
+    "slow: long-running tests excluded from the default and CI runs",
+    "parity: one-off metric-parity checks against quantstats (needs parity group)",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+data_file = "coverage/.coverage"
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+[tool.coverage.xml]
+output = "coverage/coverage.xml"

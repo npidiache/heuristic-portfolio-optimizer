@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Tooling caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+
+# Coverage artifacts (kept under coverage/, never at repo root)
+coverage/
+
+# Generated per-run artifacts (reports in docs/analysis are committed instead)
+outputs/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db

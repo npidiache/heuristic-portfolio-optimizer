@@ -1,0 +1,216 @@
+name: coverage
+
+on:
+  pull_request:
+    branches: [master]
+
+# Least privilege: read the code, write the sticky PR comment.
+permissions:
+  contents: read
+  pull-requests: write
+
+# Cancel superseded runs on the same PR.
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    # This job name is the status-check "context" you require in the ruleset.
+    name: coverage
+    runs-on: ubuntu-latest
+    # Pure scientific stack (numpy/scipy/cvxpy) — installs in minutes.
+    timeout-minutes: 15
+    steps:
+      - name: Check out (full history for diff-cover)
+        uses: actions/checkout@v4
+        with:
+          # diff-cover needs history to compute the merge-base with the target.
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        # checkout reliably creates origin/<base> only for the checked-out ref,
+        # and on pull_request it checks out the merge ref -- so fetch the base
+        # explicitly to guarantee diff-cover's --compare-branch resolves.
+        run: git fetch --no-tags origin ${{ github.base_ref }}
+
+      - name: Set up uv (with cache)
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies (from lockfile)
+        run: uv sync --dev --frozen
+
+      - name: Ruff lint
+        id: ruff_lint
+        # Capture output for the PR comment; do not abort the job here so the
+        # report still publishes. The job is failed explicitly in the gate step.
+        continue-on-error: true
+        run: uv run ruff check 2>&1 | tee ruff-lint.out
+
+      - name: Ruff format
+        id: ruff_format
+        continue-on-error: true
+        run: uv run ruff format --check --diff 2>&1 | tee ruff-format.out
+
+      - name: Mypy
+        id: mypy
+        continue-on-error: true
+        # --no-color-output keeps ANSI escapes out of the captured comment text.
+        run: uv run mypy --no-color-output 2>&1 | tee mypy.out
+
+      - name: Run tests with coverage
+        # Generates coverage/.coverage + coverage/coverage.xml. We override the
+        # project's --cov-fail-under=90 to 0 here so a low *total* does not abort
+        # before diff-cover and the report run. Both gates are enforced at the end.
+        # The project addopts already exclude repro/slow/parity markers.
+        run: uv run pytest --cov-fail-under=0
+
+      - name: Diff coverage gate (changed lines >= 90%)
+        id: diffcover
+        # Do not fail the step yet: we still want to publish the report and the
+        # total coverage. The job is failed explicitly in the final step.
+        continue-on-error: true
+        run: |
+          uv run diff-cover coverage/coverage.xml \
+            --compare-branch=origin/${{ github.base_ref }} \
+            --fail-under=90 \
+            --markdown-report diff-cover.md
+
+      - name: Total repository coverage
+        id: total
+        run: |
+          total=$(uv run coverage report --format=total)
+          echo "total=$total" >> "$GITHUB_OUTPUT"
+          echo "Total repository coverage: ${total}%"
+
+      - name: Build report
+        env:
+          TOTAL: ${{ steps.total.outputs.total }}
+          RUFF_LINT: ${{ steps.ruff_lint.outcome }}
+          RUFF_FORMAT: ${{ steps.ruff_format.outcome }}
+          MYPY: ${{ steps.mypy.outcome }}
+        run: |
+          # Render a check status from a step outcome ("success"/"failure").
+          status() { [ "$1" = "success" ] && echo "✅ Passed" || echo "❌ Failed"; }
+
+          # Emit a collapsible block with the captured output of a failed check.
+          emit_fail() {
+            local name="$1" outcome="$2" file="$3"
+            [ "$outcome" = "success" ] && return 0
+            echo "<details>"
+            echo "<summary>❌ ${name} — why it failed</summary>"
+            echo ""
+            echo '```'
+            cat "$file"
+            echo '```'
+            echo ""
+            echo "</details>"
+            echo ""
+          }
+
+          # diff-cover writes the markdown report even when under threshold; only
+          # a hard error leaves it absent, so guard against that.
+          if [ ! -f diff-cover.md ]; then
+            printf '# Diff Coverage\n## Diff: (unavailable)\n\nNo diff coverage data was produced.\n' > diff-cover.md
+          fi
+
+          # Split the diff-cover report into the summary (diff list + totals) and
+          # the per-file uncovered-line snippets, demoting every heading one level
+          # so "Diff Coverage" sits at the same level as "Coverage Report".
+          # Snippet code lines are prefixed with a notice + line number, so they
+          # never start with "#" -- demoting only true headings is safe.
+          : > summary_part.md
+          : > details_part.md
+          awk '
+            /^## / {
+              if ($0 ~ /^## Summary/) seen_summary=1
+              else if (seen_summary && !in_details) in_details=1
+            }
+            {
+              line = $0
+              if (line ~ /^#/) line = "#" line
+              if (in_details) print line > "details_part.md"
+              else print line > "summary_part.md"
+            }
+          ' diff-cover.md
+
+          {
+            echo "## Coverage Report"
+            echo ""
+            echo "**Total repository coverage:** ${TOTAL}%"
+            echo ""
+
+            echo "## Quality Checks"
+            echo ""
+            echo "| Check | Status |"
+            echo "| --- | --- |"
+            echo "| Ruff lint | $(status "$RUFF_LINT") |"
+            echo "| Ruff format | $(status "$RUFF_FORMAT") |"
+            echo "| Mypy | $(status "$MYPY") |"
+            echo ""
+            emit_fail "Ruff lint" "$RUFF_LINT" ruff-lint.out
+            emit_fail "Ruff format" "$RUFF_FORMAT" ruff-format.out
+            emit_fail "Mypy" "$MYPY" mypy.out
+
+            # summary_part.md already opens with the demoted "## Diff Coverage".
+            cat summary_part.md
+
+            if [ -s details_part.md ]; then
+              echo ""
+              echo "<details>"
+              echo "<summary>Per-file uncovered lines</summary>"
+              echo ""
+              cat details_part.md
+              echo ""
+              echo "</details>"
+            fi
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sticky PR comment
+        # Skip on PRs from forks, where the token cannot write comments.
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          marker="<!-- diff-cover-report -->"
+          body="${marker}"$'\n'"$(cat report.md)"
+          id=$(gh api "repos/${REPO}/issues/${PR}/comments" \
+                 --jq ".[] | select(.body | startswith(\"${marker}\")) | .id" | head -n1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${REPO}/issues/comments/${id}" -f body="$body" >/dev/null
+          else
+            gh api -X POST "repos/${REPO}/issues/${PR}/comments" -f body="$body" >/dev/null
+          fi
+
+      - name: Enforce gates
+        # Single consolidated gate so every failing check is reported at once
+        # (the sticky comment above already published the details).
+        run: |
+          fail=0
+          if ! uv run coverage report --fail-under=90; then
+            echo "::error::Total repository coverage is below 90%."
+            fail=1
+          fi
+          if [ "${{ steps.diffcover.outcome }}" = "failure" ]; then
+            echo "::error::Diff coverage for new/changed lines is below 90%."
+            fail=1
+          fi
+          if [ "${{ steps.ruff_lint.outcome }}" = "failure" ]; then
+            echo "::error::Ruff lint found issues -- run 'uv run ruff check'. See the PR comment."
+            fail=1
+          fi
+          if [ "${{ steps.ruff_format.outcome }}" = "failure" ]; then
+            echo "::error::Ruff format check failed -- run 'uv run ruff format'. See the PR comment."
+            fail=1
+          fi
+          if [ "${{ steps.mypy.outcome }}" = "failure" ]; then
+            echo "::error::Mypy type check failed. See the PR comment for details."
+            fail=1
+          fi
+          exit $fail

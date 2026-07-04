@@ -1,0 +1,45 @@
+name: reproduction
+
+# Full thesis reproduction: 20 pinned seeds x 4 periods x 2 universes across the
+# six canonical models, then the Tier-2 tolerance + ordinal assertions. This is
+# a multi-hour job, so it never runs on PRs — dispatch it manually (or via the
+# monthly cron) whenever the optimizer or objective code changes.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 1 * *"
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    name: thesis reproduction
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up uv (with cache)
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies (from lockfile)
+        run: uv sync --dev --frozen
+
+      - name: Run full reproduction
+        run: uv run python scripts/run_reproduction.py --output outputs/reproduction
+
+      - name: Tier-2 assertions (tolerance bands + ordinal headlines)
+        run: uv run pytest -m repro --cov-fail-under=0 --no-cov
+
+      - name: Upload reproduction report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reproduction-report
+          path: outputs/reproduction/
+          retention-days: 90

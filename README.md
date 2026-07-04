@@ -73,13 +73,13 @@ flowchart TD
 
     style data fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
     style canonical fill:#1A1A2E,stroke:#FF6B6B,color:#FFFFFF
-    style universe fill:#F8FAFC,stroke:#00E5FF,color:#1E293B
-    style objective fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
-    style optimizers fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
-    style regimes fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
-    style metrics fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
-    style dyn fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
-    style fix fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style universe fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style objective fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style optimizers fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style regimes fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style metrics fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style dyn fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style fix fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
 ```
 
 The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (reviewer tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).

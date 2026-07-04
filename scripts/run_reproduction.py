@@ -2,7 +2,7 @@
 
 Produces one JSON per (universe, period) with the canonical metric schema,
 plus a consolidated `reproduction_summary.json` including execution times
-(committee task 14). The Tier-2 pytest suite (`-m repro`) consumes these same
+(reviewer task 14). The Tier-2 pytest suite (`-m repro`) consumes these same
 runs through the library API; this script is the human-facing artifact
 generator.
 

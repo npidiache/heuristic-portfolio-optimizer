@@ -34,7 +34,7 @@ and Karaboga's fitness transform for greedy selection. Seeding uses
 `numpy.random.default_rng(seed)` — the legacy per-class hash derivation was
 platform-dependent; statistical reproduction (Tier-2 bands) is the contract.
 
-`p_fa` on `ABCFAEM` is the probabilistic trigger of committee task 9:
+`p_fa` on `ABCFAEM` is the probabilistic trigger of reviewer task 9:
 probability that a stalled bee performs the firefly elite move instead of a
 random restart. The default `1.0` reproduces the frozen thesis behavior;
-see `docs/analysis/pfa_sensitivity.md` for the sweep.
+see `docs/analysis/pfa_sensitivity.md` for the local sensitivity analysis.

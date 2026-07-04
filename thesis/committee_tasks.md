@@ -1,4 +1,4 @@
-# Committee review — all 15 comments, answers included
+# Reviewer comments — all 15 comments, answers included
 
 Exported from `ABC Comments.xlsx` (2026-06-27), validated against this
 repository on 2026-07-04. **This document is self-contained**: every
@@ -126,9 +126,11 @@ CVaR) consistently thereafter.
 ### 9 — PFA sensitivity (the sensitive one)
 
 **Direct answer to the comment**: the value used in every thesis run is
-`p_fa = 1.0` (the FA elite move fires unconditionally), and the requested
-sweep over {0.3, 0.4, 0.5} leaves every reported metric **bit-identical**
-— e.g., Sortino by period (identical across all four p_fa values):
+`p_fa = 1.0` (the FA elite move fires unconditionally). The main sensitivity
+check should therefore be local to the executed value, not centered on
+distant lower probabilities. Because `p_fa` is bounded above at 1.0, the
+local grid is one-sided: {0.80, 0.90, 0.95, 1.00}. Every reported metric is
+**bit-identical** across that grid — e.g., Sortino by period:
 
 | period | Sortino (any p_fa) |
 | --- | ---: |
@@ -136,6 +138,11 @@ sweep over {0.3, 0.4, 0.5} leaves every reported metric **bit-identical**
 | gfc_2007_2009 | 0.399 |
 | war_2022 | 0.661 |
 | 2023_stability | 4.700 |
+
+The reviewer-suggested lower values {0.3, 0.4, 0.5} are still useful as a
+distant range check, but they should not be presented as the main robustness
+claim. They also leave every reported metric bit-identical for the same
+mechanical reason.
 
 **Why (and the defense against "then what is the parameter for?")**: the
 calibrated stagnation threshold (`max_trials = 300`) is never reached
@@ -152,7 +159,43 @@ elite move shows directionally better mean fitness in 3 of 4 periods and
 equal-or-better convergence endpoints in 3 of 4 — but not statistically
 significant at 20 seeds. **Defensible claim**: "a mild, never-harmful
 guided-recovery mechanism whose calibrated configuration never needs it;
-therefore the final results are provably insensitive to PFA."
+therefore the final results are locally insensitive to PFA around the
+executed value, while active-mechanism diagnostics show how it behaves when
+the scout phase is forced on."
+
+References to cite in the written answer: Karaboga (2005) and Karaboga &
+Basturk (2007) for ABC/scout mechanics; Yang (2009) for Firefly movement;
+Tuba & Bacanin (2014) for ABC-FA in cardinality-constrained portfolio
+selection; Ertenlice & Kalayci (2018) for swarm-intelligence portfolio
+optimization context; Birattari (2009), Eiben & Smit (2011), Sipper et al.
+(2018), and Saltelli et al. (2008) for parameter tuning/sensitivity logic;
+Wilcoxon (1945) for the paired seed-level diagnostic.
+
+Suggested thesis wording:
+
+> En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir,
+> cuando una abeja alcanza la fase scout, el movimiento guiado por élites
+> FAEM se aplica de forma determinística. La sensibilidad se evaluó en una
+> vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y,
+> adicionalmente en valores extremos ({0.3, 0.4, 0.5}).
+> En ambos casos las métricas permanecen idénticas.
+>
+> La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con la
+> calibración final, max_trials = 300, y con un total de 60 iteraciones,
+> esa fase no se activa en las corridas canónicas. Por tanto, modificar p_fa
+> no cambia la trayectoria efectiva del algoritmo ni los resultados
+> reportados. Esta evidencia respalda mantener la configuración
+> calibrada de la tesis.
+
+Optional future-work note:
+
+> Como línea exploratoria para trabajos futuros, podría estudiarse una
+> sensibilidad conjunta entre max_trials y p_fa, o bien niveles de
+> iteración más altos, para determinar cuándo conviene activar mecanismos
+> de recuperación guiados por élites. Ese análisis ampliaría el entendimiento
+> del balance exploración-explotación de ABC-FAEM, pero no modifica las
+> conclusiones de la configuración calibrada usada en esta tesis.
+
 Full evidence + oral-defense summary:
 [`docs/analysis/pfa_sensitivity.md`](../docs/analysis/pfa_sensitivity.md).
 

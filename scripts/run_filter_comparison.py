@@ -1,4 +1,4 @@
-"""Best model with vs. without the z-score filter (committee task 12).
+"""Best model with vs. without the z-score filter (reviewer task 12).
 
 For each thesis period, backtests the best-performing model of the canonical
 fixed-universe tables under two universes:
@@ -10,7 +10,7 @@ fixed-universe tables under two universes:
   selection stage is removed but everything else is identical.
 
 Writes `docs/analysis/filter_comparison.md` and `.html` (annex-ready detail;
-the thesis body only needs the brief mention, as the committee suggested).
+the thesis body only needs the brief mention, as the reviewers suggested).
 """
 
 # --------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ def main() -> None:
     )
 
     md = [
-        "# Best model with vs. without the z-score filter (committee task 12)",
+        "# Best model with vs. without the z-score filter (reviewer task 12)",
         "",
         f"Generated {today} by `scripts/run_filter_comparison.py` "
         f"({args.seeds} pinned seeds per configuration).",
@@ -146,7 +146,7 @@ def main() -> None:
         (
             "Scope",
             notice(
-                "Annex material for committee task 12. The canonical thesis "
+                "Annex material for reviewer task 12. The canonical thesis "
                 "tables are unchanged; this compares the selection stage "
                 "only.",
                 label="TASK 12",

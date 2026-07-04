@@ -1,10 +1,12 @@
-"""PFA sensitivity analysis on ABC-FAEM (committee task 9), with defense.
+"""PFA sensitivity analysis on ABC-FAEM (reviewer task 9), with defense.
 
-Part 1 — the committee's requested sweep: `p_fa` over {0.3, 0.4, 0.5} plus
-the frozen baseline 1.0, ABC-FAEM only, fixed fundamentals universe, all four
-thesis periods. Under the calibrated stagnation threshold the scout phase
-never activates, so the sweep is provably invariant — the formal confirmation
-that the analysis "does not affect the final results".
+Part 1 — local sensitivity around the executed thesis value: `p_fa` over a
+one-sided neighborhood below the frozen baseline 1.0, ABC-FAEM only, fixed
+fundamentals universe, all four thesis periods. Under the calibrated
+stagnation threshold the scout phase never activates, so the local sweep is
+provably invariant — the formal confirmation that the analysis "does not
+affect the final results". The reviewers' lower values {0.3, 0.4, 0.5} are
+kept as a secondary range check, not as the primary sensitivity grid.
 
 Part 2 — the defense of the mechanism (why the parameter exists):
 
@@ -27,6 +29,7 @@ Writes `docs/analysis/pfa_sensitivity.md` and `.html`.
 import argparse
 import sys
 from datetime import date
+from html import escape
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -62,12 +65,74 @@ from hive_abc.reporting.html import (  # noqa: E402
 # Global Variables
 # --------------------------------------------------------------------------------------
 DOCS_DIR = REPO_ROOT / "docs" / "analysis"
-P_FA_VALUES = (1.0, 0.5, 0.4, 0.3)
+LOCAL_P_FA_VALUES = (1.0, 0.95, 0.9, 0.8)
+RANGE_CHECK_P_FA_VALUES = (1.0, 0.5, 0.4, 0.3)
 ABLATION_P_FA = (0.0, 0.3, 0.5, 1.0)
 MODEL = "ABC_FA_Scout"
 STRESSED_MAX_TRIALS = 15
 ACTIVATION_THRESHOLDS = (10, 15, 25, 50, 100, 200, 300)
 CONVERGENCE_CHECKPOINTS = (5, 10, 20, 40, 60)
+SUGGESTED_THESIS_WORDING = (
+    "En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir, "
+    "cuando una abeja alcanza la fase scout, el movimiento guiado por élites "
+    "FAEM se aplica de forma determinística. La sensibilidad se evaluó en "
+    "una vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y, "
+    "adicionalmente, en los valores sugeridos por los evaluadores ({0.3, 0.4, "
+    "0.5}). En ambos casos las métricas permanecen idénticas.",
+    "La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con "
+    "la calibración final, max_trials = 300, y con un presupuesto de 60 "
+    "iteraciones, esa fase no se activa en las corridas canónicas. Por tanto, "
+    "modificar p_fa no cambia la trayectoria efectiva del algoritmo ni los "
+    "resultados financieros reportados. Esta evidencia respalda mantener la "
+    "configuración calibrada de la tesis.",
+)
+FUTURE_RESEARCH_NOTE = (
+    "Como línea exploratoria para trabajos futuros, podría estudiarse una "
+    "sensibilidad conjunta entre max_trials y p_fa, o bien presupuestos de "
+    "iteración más largos, para caracterizar cuándo conviene activar "
+    "mecanismos de recuperación guiados por élites. Ese análisis ampliaría "
+    "el entendimiento del balance exploración-explotación de ABC-FAEM, pero "
+    "no modifica las conclusiones de la configuración calibrada usada en "
+    "esta tesis."
+)
+RELATED_WORK = (
+    (
+        "Karaboga (2005) and Karaboga & Basturk (2007)",
+        "baseline ABC mechanics: employed/onlooker search plus a scout "
+        "restart after an abandonment/limit counter is exceeded.",
+    ),
+    (
+        "Yang (2009)",
+        "Firefly Algorithm movement rule and its b0, gamma, and alpha "
+        "parameters; this is the move reused inside FAEM's scout.",
+    ),
+    (
+        "Tuba & Bacanin (2014)",
+        "closest portfolio-specific ABC-FA precedent: a firefly-hybrid ABC "
+        "for cardinality-constrained mean-variance portfolio selection.",
+    ),
+    (
+        "Ertenlice & Kalayci (2018)",
+        "survey context for swarm-intelligence portfolio optimization and "
+        "why algorithm-parameter robustness matters in this domain.",
+    ),
+    (
+        "Birattari (2009), Eiben & Smit (2011), and Sipper et al. (2018)",
+        "parameter tuning/configuration literature supporting a distinction "
+        "between the calibrated value and a post-hoc sensitivity analysis.",
+    ),
+    (
+        "Saltelli et al. (2008)",
+        "sensitivity-analysis framing: perturb the input whose effect is "
+        "being claimed; because p_fa is bounded above at 1.0, the local test "
+        "is necessarily one-sided below the executed value.",
+    ),
+    (
+        "Wilcoxon (1945)",
+        "paired non-parametric comparison used for the per-seed stochastic "
+        "diagnostic when the scout mechanism is forced active.",
+    ),
+)
 
 
 # --------------------------------------------------------------------------------------
@@ -124,20 +189,25 @@ def faem_kwargs(legacy: dict[str, float], max_trials: int) -> dict[str, float]:
     }
 
 
-def sweep(seeds: int, stressed: bool) -> pd.DataFrame:
+def sweep(
+    seeds: int,
+    stressed: bool,
+    p_fa_values: tuple[float, ...],
+) -> pd.DataFrame:
     """
-    Runs the committee's p_fa sweep over every period on the fixed universe.
+    Runs a p_fa sweep over every period on the fixed universe.
 
     Args:
         seeds: Seeds per run.
         stressed: When True, forces `max_trials = STRESSED_MAX_TRIALS`.
+        p_fa_values: Trigger-probability values to test.
 
     Returns:
         Long-format DataFrame with one row per (period, p_fa).
     """
     rows = []
     for slug in PERIODS:
-        for p_fa in P_FA_VALUES:
+        for p_fa in p_fa_values:
             overrides: dict[str, float] = {"p_fa": p_fa}
             if stressed:
                 overrides["max_trials"] = STRESSED_MAX_TRIALS
@@ -341,11 +411,66 @@ def convergence_takeaway(convergence: pd.DataFrame) -> str:
     )
 
 
+def sweeps_are_identical(frame: pd.DataFrame) -> bool:
+    """
+    Checks whether all thesis-facing metrics are invariant across p_fa.
+
+    Args:
+        frame: Long-format sweep output.
+
+    Returns:
+        True when each period has one unique value per reported metric.
+    """
+    return all(
+        pivot(frame, metric).nunique(axis=1).eq(1).all()
+        for metric in ("sortino", "max_drawdown", "jensen_alpha", "omega")
+    )
+
+
 def pivot(frame: pd.DataFrame, metric: str) -> pd.DataFrame:
     """One metric as a period x p_fa table."""
     table = frame.pivot(index="period", columns="p_fa", values=metric)
     table.index.name = "period"
     return table
+
+
+def related_work_markdown() -> str:
+    """
+    Formats the comment-9 reference map for the markdown report.
+
+    Returns:
+        Markdown bullets with each citation's role in the response.
+    """
+    return "\n".join(
+        f"- **{citation}** — {role}" for citation, role in RELATED_WORK
+    )
+
+
+def related_work_html() -> str:
+    """
+    Formats the comment-9 reference map for the HTML report.
+
+    Returns:
+        An HTML unordered list with each citation's role.
+    """
+    items = "".join(
+        f"<li><strong>{escape(citation)}</strong> — {escape(role)}</li>"
+        for citation, role in RELATED_WORK
+    )
+    return f"<ul>{items}</ul>"
+
+
+def paragraphs_html(paragraphs: tuple[str, ...]) -> str:
+    """
+    Formats explanatory paragraphs for the HTML report.
+
+    Args:
+        paragraphs: Plain text paragraphs.
+
+    Returns:
+        HTML paragraph fragments.
+    """
+    return "".join(f"<p>{escape(paragraph)}</p>" for paragraph in paragraphs)
 
 
 def main() -> None:
@@ -355,8 +480,14 @@ def main() -> None:
     args = parser.parse_args()
     today = date.today().isoformat()
 
-    print(">> Part 1: calibrated sweep (thesis max_trials)")
-    calibrated = sweep(args.seeds, stressed=False)
+    print(">> Part 1a: local calibrated sweep around p_fa=1.0")
+    local = sweep(args.seeds, stressed=False, p_fa_values=LOCAL_P_FA_VALUES)
+    print(">> Part 1b: lower-value range check requested by reviewers")
+    range_check = sweep(
+        args.seeds,
+        stressed=False,
+        p_fa_values=RANGE_CHECK_P_FA_VALUES,
+    )
     print(">> Part 2a: scout activation frequency vs max_trials")
     activations = activation_frequency(args.seeds)
     print(">> Part 2b: mechanism ablation under stress (p_fa 0 -> 1)")
@@ -364,17 +495,15 @@ def main() -> None:
     print(">> Part 2c: convergence profiles under stress")
     convergence = convergence_profile(args.seeds)
 
-    calibrated_identical = all(
-        pivot(calibrated, metric).nunique(axis=1).eq(1).all()
-        for metric in ("sortino", "max_drawdown", "jensen_alpha", "omega")
-    )
+    local_identical = sweeps_are_identical(local)
+    range_check_identical = sweeps_are_identical(range_check)
 
     md: list[str] = [
-        "# PFA sensitivity analysis — ABC-FAEM (committee task 9)",
+        "# PFA sensitivity analysis — ABC-FAEM (reviewer task 9)",
         "",
         f"Generated {today} by `scripts/run_pfa_sensitivity.py` "
         f"({args.seeds} pinned seeds; fixed fundamentals universe; "
-        f"ABC-FAEM only, as the committee note requests).",
+        f"ABC-FAEM only, as the reviewer note requests).",
         "",
         "`p_fa` is the probabilistic trigger of ABC-FAEM's scout phase "
         "(thesis p. 21): with probability `p_fa` a stalled bee performs the "
@@ -383,31 +512,53 @@ def main() -> None:
         "`p_fa = 1.0` is the frozen thesis behavior; `p_fa = 0.0` degenerates "
         "exactly to the original ABC scout.",
         "",
-        "## 1. The committee's sweep, calibrated configuration",
+        "## 1. Local sensitivity around the executed value",
+        "",
+        "Because the executed value is `p_fa = 1.0`, the primary sensitivity "
+        "grid should be local to that value rather than centered on distant "
+        "lower probabilities. Since `p_fa` is bounded above at 1.0, the local "
+        "neighborhood is necessarily one-sided: {0.80, 0.90, 0.95, 1.00}.",
         "",
         "Under the calibrated stagnation threshold "
         "(`max_trials = 0.6 × 25 bees × 20 assets = 300`) a bee accumulates "
         "at most ~30 unsuccessful trials within the 60-iteration budget, so "
         "the scout phase — and therefore `p_fa` — is **never exercised**. "
-        "The sweep confirms this: all metrics are bit-identical across "
-        f"`p_fa` values (verified: {calibrated_identical}).",
+        "The local sweep confirms this: all thesis-facing metrics are "
+        "bit-identical across `p_fa` values "
+        f"(verified: {local_identical}).",
         "",
         "### Sortino",
         "",
-        pivot(calibrated, "sortino").to_markdown(floatfmt=".3f"),
+        pivot(local, "sortino").to_markdown(floatfmt=".3f"),
         "",
         "### Max drawdown",
         "",
-        pivot(calibrated, "max_drawdown").to_markdown(floatfmt=".3f"),
+        pivot(local, "max_drawdown").to_markdown(floatfmt=".3f"),
         "",
         "> [!IMPORTANT]",
         '> <font color="#ff6b6b">**CONCLUSION (TASK 9)**</font>',
-        "> The final thesis results are insensitive to the PFA trigger by "
-        "construction: with the calibrated stagnation threshold the "
-        "probabilistic scout never activates, so any value in {0.3, 0.4, "
-        "0.5, 1.0} leaves every reported number unchanged. This formally "
-        "satisfies the committee's requirement that the sensitivity "
-        "analysis must not affect the final results.",
+        "> The final thesis results are locally insensitive to the PFA "
+        "trigger around the executed value `p_fa = 1.0`: with the calibrated "
+        "stagnation threshold the probabilistic scout never activates, so "
+        "the parameter is empirically inactive in the canonical runs. This "
+        "supports the thesis conclusion without claiming that `p_fa` is "
+        "globally irrelevant under different scout thresholds.",
+        "",
+        "### Suggested wording for the thesis",
+        "",
+        SUGGESTED_THESIS_WORDING[0],
+        "",
+        SUGGESTED_THESIS_WORDING[1],
+        "",
+        "### Lower-value range check",
+        "",
+        "The reviewer-suggested lower values {0.3, 0.4, 0.5} are better "
+        "reported as a distant range check, not as the main local "
+        "sensitivity analysis. They are also bit-identical under the same "
+        "calibrated configuration "
+        f"(verified: {range_check_identical}):",
+        "",
+        pivot(range_check, "sortino").to_markdown(floatfmt=".3f"),
         "",
         "## 2. Why the parameter exists — defense of the mechanism",
         "",
@@ -464,12 +615,25 @@ def main() -> None:
         "",
         convergence_takeaway(convergence),
         "",
-        "## 3. Defense summary (for the oral discussion)",
+        "## 3. Related work and references to cite",
         "",
-        "1. **Formally**: the requested sweep (0.3/0.4/0.5) leaves every "
-        "reported number unchanged — bit-identical, not merely "
-        "statistically indistinguishable — because the calibrated "
-        "stagnation threshold keeps the trigger dormant (§1, §2a).",
+        "Use these sources to position the answer: ABC establishes why the "
+        "scout phase is the only place where `p_fa` can matter; Firefly and "
+        "ABC-FA literature justifies the elite move; sensitivity/tuning "
+        "references justify a local perturbation around the calibrated "
+        "parameter rather than treating distant values as the main test.",
+        "",
+        related_work_markdown(),
+        "",
+        "## 4. Defense summary (for the oral discussion)",
+        "",
+        "1. **Formally**: the local sweep around the executed value "
+        "(`p_fa = 0.80/0.90/0.95/1.00`) leaves every reported number "
+        "unchanged — bit-identical, not merely statistically "
+        "indistinguishable — because the calibrated stagnation threshold "
+        "keeps the trigger dormant (§1, §2a). The lower "
+        "`0.3/0.4/0.5` range check reaches the same result but should not be "
+        "the main robustness claim.",
         "2. **Mechanistically**: `p_fa` is the knob of a calibrated "
         "contingency subsystem. The calibration, not the authors, decided "
         "the contingency was unnecessary for these horizons and budgets — "
@@ -481,6 +645,10 @@ def main() -> None:
         "mechanism's behavior is characterized in both regimes rather than "
         "asserted.",
         "",
+        "## 5. Exploratory future work note",
+        "",
+        FUTURE_RESEARCH_NOTE,
+        "",
     ]
 
     html_sections = [
@@ -488,12 +656,21 @@ def main() -> None:
             "Conclusion (task 9)",
             notice(
                 "Under the calibrated thesis parameters the PFA trigger is "
-                "never exercised: results are bit-identical for p_fa in "
-                "{0.3, 0.4, 0.5, 1.0}. The final results are unaffected.",
+                "never exercised: the local grid near p_fa=1.0 is "
+                "bit-identical, and the lower 0.3/0.4/0.5 range check is "
+                "also unchanged. The final results are unaffected.",
                 label="TASK 9",
             ),
         ),
-        ("Calibrated sweep — Sortino", frame_to_html(pivot(calibrated, "sortino"))),
+        ("Local calibrated sweep — Sortino", frame_to_html(pivot(local, "sortino"))),
+        (
+            "Lower-value range check — Sortino",
+            frame_to_html(pivot(range_check, "sortino")),
+        ),
+        (
+            "Suggested wording for the thesis",
+            paragraphs_html(SUGGESTED_THESIS_WORDING),
+        ),
         (
             "Scout activation frequency vs max_trials",
             frame_to_html(activations, "{:.1f}"),
@@ -514,6 +691,8 @@ def main() -> None:
             "Convergence profiles under stress",
             frame_to_html(convergence.set_index("period"), "{:.6f}"),
         ),
+        ("Related work", related_work_html()),
+        ("Exploratory future work note", paragraphs_html((FUTURE_RESEARCH_NOTE,))),
     ]
 
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
@@ -521,7 +700,7 @@ def main() -> None:
     (DOCS_DIR / "pfa_sensitivity.html").write_text(
         render_report(
             title="PFA sensitivity analysis",
-            subtitle="ABC-FAEM probabilistic trigger — committee task 9, with "
+            subtitle="ABC-FAEM probabilistic trigger — reviewer task 9, with "
             "mechanism defense",
             sections=html_sections,
             generated_note=f"generated {today} — {args.seeds} seeds, "

@@ -27,4 +27,4 @@ Display names for reports live in `hive_abc.reporting.DISPLAY_NAMES`.
 | `G` | `g_constant` |
 | `seed` (constructor) | `seed` (argument of `optimize()`) |
 | derived per-class hash seed | stable `MODEL_SEED_OFFSETS` in the backtest engine |
-| — (new) | `p_fa` on `ABCFAEM` — the PFA trigger of committee task 9 (default 1.0 = frozen behavior) |
+| — (new) | `p_fa` on `ABCFAEM` — the PFA trigger of reviewer task 9 (default 1.0 = frozen behavior) |

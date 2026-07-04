@@ -101,7 +101,7 @@ class BacktestConfig:
         param_overrides: Per-model constructor overrides — the PFA
             sensitivity hook (e.g., `{"ABC_FA_Scout": {"p_fa": 0.4}}`).
         universe_tickers: When given, skips selection and uses these tickers
-            (the with/without-filter comparison hook of committee task 12).
+            (the with/without-filter comparison hook of reviewer task 12).
     """
 
     period: str
@@ -115,7 +115,7 @@ class BacktestConfig:
 
 @dataclass(frozen=True)
 class RuntimeStats:
-    """Wall-clock statistics per model across seeds (committee task 14)."""
+    """Wall-clock statistics per model across seeds (reviewer task 14)."""
 
     mean_seconds: float
     std_seconds: float

@@ -1,6 +1,6 @@
-# Parameter provenance: the regime calibration (committee task 3)
+# Parameter provenance: the regime calibration (reviewer task 3)
 
-The committee noted (task 3) that the comparative table on p. 15 mentions
+The reviewers noted (task 3) that the comparative table on p. 15 mentions
 parameters such as `b0` and `max_trials` that *"are never defined or
 explained in the later formulation"*. This note is the missing section: it
 defines every algorithm parameter and documents where the executed values
@@ -86,7 +86,7 @@ the canonical runs**, so the calibrated configurations effectively favor
 pure employed/onlooker exploitation, and the performance differences between
 ABC, ABC-FAEM, and ABC-GSA in the result tables stem from their distinct
 random streams rather than their scout mechanics. This is also why the PFA
-trigger is provably inert in the final results (committee task 9 —
+trigger is provably inert in the final results (reviewer task 9 —
 [`docs/analysis/pfa_sensitivity.md`](../analysis/pfa_sensitivity.md), whose
 stressed annex shows the mechanisms at work when `max_trials` is small, as
 in the exploratory grids that searched `max_trials ∈ [8, 25]`).

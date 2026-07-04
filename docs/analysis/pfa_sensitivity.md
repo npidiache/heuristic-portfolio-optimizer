@@ -1,25 +1,27 @@
-# PFA sensitivity analysis — ABC-FAEM (committee task 9)
+# PFA sensitivity analysis — ABC-FAEM (reviewer task 9)
 
-Generated 2026-07-04 by `scripts/run_pfa_sensitivity.py` (20 pinned seeds; fixed fundamentals universe; ABC-FAEM only, as the committee note requests).
+Generated 2026-07-04 by `scripts/run_pfa_sensitivity.py` (20 pinned seeds; fixed fundamentals universe; ABC-FAEM only, as the reviewer note requests).
 
 `p_fa` is the probabilistic trigger of ABC-FAEM's scout phase (thesis p. 21): with probability `p_fa` a stalled bee performs the firefly move toward a softmax-selected elite; with probability `1 − p_fa` it performs the original ABC random restart. `p_fa = 1.0` is the frozen thesis behavior; `p_fa = 0.0` degenerates exactly to the original ABC scout.
 
-## 1. The committee's sweep, calibrated configuration
+## 1. Local sensitivity around the executed value
 
-Under the calibrated stagnation threshold (`max_trials = 0.6 × 25 bees × 20 assets = 300`) a bee accumulates at most ~30 unsuccessful trials within the 60-iteration budget, so the scout phase — and therefore `p_fa` — is **never exercised**. The sweep confirms this: all metrics are bit-identical across `p_fa` values (verified: True).
+Because the executed value is `p_fa = 1.0`, the primary sensitivity grid should be local to that value rather than centered on distant lower probabilities. Since `p_fa` is bounded above at 1.0, the local neighborhood is necessarily one-sided: {0.80, 0.90, 0.95, 1.00}.
+
+Under the calibrated stagnation threshold (`max_trials = 0.6 × 25 bees × 20 assets = 300`) a bee accumulates at most ~30 unsuccessful trials within the 60-iteration budget, so the scout phase — and therefore `p_fa` — is **never exercised**. The local sweep confirms this: all thesis-facing metrics are bit-identical across `p_fa` values (verified: True).
 
 ### Sortino
 
-| period         |   0.3 |   0.4 |   0.5 |   1.0 |
-|:---------------|------:|------:|------:|------:|
-| 2023_stability | 4.700 | 4.700 | 4.700 | 4.700 |
-| covid_2020     | 3.955 | 3.955 | 3.955 | 3.955 |
-| gfc_2007_2009  | 0.399 | 0.399 | 0.399 | 0.399 |
-| war_2022       | 0.661 | 0.661 | 0.661 | 0.661 |
+| period         |   0.8 |   0.9 |   0.95 |   1.0 |
+|:---------------|------:|------:|-------:|------:|
+| 2023_stability | 4.700 | 4.700 |  4.700 | 4.700 |
+| covid_2020     | 3.955 | 3.955 |  3.955 | 3.955 |
+| gfc_2007_2009  | 0.399 | 0.399 |  0.399 | 0.399 |
+| war_2022       | 0.661 | 0.661 |  0.661 | 0.661 |
 
 ### Max drawdown
 
-| period         |    0.3 |    0.4 |    0.5 |    1.0 |
+| period         |    0.8 |    0.9 |   0.95 |    1.0 |
 |:---------------|-------:|-------:|-------:|-------:|
 | 2023_stability | -0.184 | -0.184 | -0.184 | -0.184 |
 | covid_2020     | -0.270 | -0.270 | -0.270 | -0.270 |
@@ -28,7 +30,24 @@ Under the calibrated stagnation threshold (`max_trials = 0.6 × 25 bees × 20 as
 
 > [!IMPORTANT]
 > <font color="#ff6b6b">**CONCLUSION (TASK 9)**</font>
-> The final thesis results are insensitive to the PFA trigger by construction: with the calibrated stagnation threshold the probabilistic scout never activates, so any value in {0.3, 0.4, 0.5, 1.0} leaves every reported number unchanged. This formally satisfies the committee's requirement that the sensitivity analysis must not affect the final results.
+> The final thesis results are locally insensitive to the PFA trigger around the executed value `p_fa = 1.0`: with the calibrated stagnation threshold the probabilistic scout never activates, so the parameter is empirically inactive in the canonical runs. This supports the thesis conclusion without claiming that `p_fa` is globally irrelevant under different scout thresholds.
+
+### Suggested wording for the thesis
+
+En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir, cuando una abeja alcanza la fase scout, el movimiento guiado por élites FAEM se aplica de forma determinística. La sensibilidad se evaluó en una vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y, adicionalmente, en los valores sugeridos por los evaluadores ({0.3, 0.4, 0.5}). En ambos casos las métricas permanecen idénticas.
+
+La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con la calibración final, max_trials = 300, y con un presupuesto de 60 iteraciones, esa fase no se activa en las corridas canónicas. Por tanto, modificar p_fa no cambia la trayectoria efectiva del algoritmo ni los resultados financieros reportados. Esta evidencia respalda mantener la configuración calibrada de la tesis.
+
+### Lower-value range check
+
+The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a distant range check, not as the main local sensitivity analysis. They are also bit-identical under the same calibrated configuration (verified: True):
+
+| period         |   0.3 |   0.4 |   0.5 |   1.0 |
+|:---------------|------:|------:|------:|------:|
+| 2023_stability | 4.700 | 4.700 | 4.700 | 4.700 |
+| covid_2020     | 3.955 | 3.955 | 3.955 | 3.955 |
+| gfc_2007_2009  | 0.399 | 0.399 | 0.399 | 0.399 |
+| war_2022       | 0.661 | 0.661 | 0.661 | 0.661 |
 
 ## 2. Why the parameter exists — defense of the mechanism
 
@@ -101,8 +120,24 @@ Mean best fitness across seeds at iteration checkpoints (lower is better):
 
 **Reading**: both policies are *identical* until the first scout activations (first divergence at iter 20) — mechanistic confirmation that the trigger only matters after stagnation accumulates — and the FAEM elite move finishes with equal-or-better mean best fitness in 3 of 4 periods at iter 60.
 
-## 3. Defense summary (for the oral discussion)
+## 3. Related work and references to cite
 
-1. **Formally**: the requested sweep (0.3/0.4/0.5) leaves every reported number unchanged — bit-identical, not merely statistically indistinguishable — because the calibrated stagnation threshold keeps the trigger dormant (§1, §2a).
+Use these sources to position the answer: ABC establishes why the scout phase is the only place where `p_fa` can matter; Firefly and ABC-FA literature justifies the elite move; sensitivity/tuning references justify a local perturbation around the calibrated parameter rather than treating distant values as the main test.
+
+- **Karaboga (2005) and Karaboga & Basturk (2007)** — baseline ABC mechanics: employed/onlooker search plus a scout restart after an abandonment/limit counter is exceeded.
+- **Yang (2009)** — Firefly Algorithm movement rule and its b0, gamma, and alpha parameters; this is the move reused inside FAEM's scout.
+- **Tuba & Bacanin (2014)** — closest portfolio-specific ABC-FA precedent: a firefly-hybrid ABC for cardinality-constrained mean-variance portfolio selection.
+- **Ertenlice & Kalayci (2018)** — survey context for swarm-intelligence portfolio optimization and why algorithm-parameter robustness matters in this domain.
+- **Birattari (2009), Eiben & Smit (2011), and Sipper et al. (2018)** — parameter tuning/configuration literature supporting a distinction between the calibrated value and a post-hoc sensitivity analysis.
+- **Saltelli et al. (2008)** — sensitivity-analysis framing: perturb the input whose effect is being claimed; because p_fa is bounded above at 1.0, the local test is necessarily one-sided below the executed value.
+- **Wilcoxon (1945)** — paired non-parametric comparison used for the per-seed stochastic diagnostic when the scout mechanism is forced active.
+
+## 4. Defense summary (for the oral discussion)
+
+1. **Formally**: the local sweep around the executed value (`p_fa = 0.80/0.90/0.95/1.00`) leaves every reported number unchanged — bit-identical, not merely statistically indistinguishable — because the calibrated stagnation threshold keeps the trigger dormant (§1, §2a). The lower `0.3/0.4/0.5` range check reaches the same result but should not be the main robustness claim.
 2. **Mechanistically**: `p_fa` is the knob of a calibrated contingency subsystem. The calibration, not the authors, decided the contingency was unnecessary for these horizons and budgets — an empirical finding about the problem class (exploitation-dominant landscapes), documented in `docs/thesis/calibration.md`.
 3. **Empirically**: when the trigger is active (§2b–2c), the ablation and Wilcoxon tests quantify exactly what the elite move contributes relative to the original ABC restart, so the mechanism's behavior is characterized in both regimes rather than asserted.
+
+## 5. Exploratory future work note
+
+Como línea exploratoria para trabajos futuros, podría estudiarse una sensibilidad conjunta entre max_trials y p_fa, o bien presupuestos de iteración más largos, para caracterizar cuándo conviene activar mecanismos de recuperación guiados por élites. Ese análisis ampliaría el entendimiento del balance exploración-explotación de ABC-FAEM, pero no modifica las conclusiones de la configuración calibrada usada en esta tesis.

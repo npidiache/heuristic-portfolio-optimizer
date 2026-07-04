@@ -1,4 +1,4 @@
-"""Generates the branded thesis figures (committee comment 15).
+"""Generates the branded thesis figures (reviewer comment 15).
 
 Produces print-ready PNGs (300 dpi, Obsidian Aqua palette, Spanish labels —
 they are destined for the Word document) under `docs/figures/`. Every figure

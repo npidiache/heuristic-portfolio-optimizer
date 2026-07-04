@@ -84,6 +84,6 @@ intentional, documented behavior change approved by the maintainer.
 ## Versioning
 
 - `X.0.0` — result-affecting changes (require a new canonical results file
-  and thesis-committee awareness).
+  and thesis-reviewer awareness).
 - `0.X.0` — new features (new algorithms, reports, data loaders).
 - `0.0.X` — fixes and docs.

@@ -33,7 +33,7 @@ The repository is built on four properties:
 - [Methodology](#methodology)
 - [Canonical results](#canonical-results)
 - [Reproducing the thesis](#reproducing-the-thesis)
-- [Committee analyses](#committee-analyses)
+- [Reviewer analyses](#reviewer-analyses)
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
 - [Usage](#usage)
@@ -82,7 +82,7 @@ flowchart TD
     style fix fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
 ```
 
-The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (committee tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).
+The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (reviewer tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).
 
 ## Canonical results
 
@@ -121,9 +121,9 @@ Three regression tiers keep the results frozen:
 
 Bitwise equality with the thesis tables is impossible by design — the legacy harness drew unpinned seeds — so Tier 2 asserts calibrated statistical bands instead; the reasoning is documented in [`tests/reproduction_test.py`](tests/reproduction_test.py).
 
-## Committee analyses
+## Reviewer analyses
 
-Annex-ready material for the committee's review comments (tracker: [`thesis/committee_tasks.md`](thesis/committee_tasks.md)):
+Annex-ready material for the reviewers' comments (tracker: [`thesis/`](thesis/)):
 
 | Task | Deliverable | Headline |
 | --- | --- | --- |
@@ -148,7 +148,7 @@ heuristic-portfolio-optimizer/
 ├── tests/                 # mirrors src/; *_test.py; golden/ Tier-3 file
 ├── data/frozen/           # committed input data (checksummed, immutable)
 ├── data/canonical/        # frozen thesis results (checksummed, immutable)
-├── thesis/                # frozen thesis document + committee task tracker
+├── thesis/                # frozen thesis document + reviewer task tracker
 ├── legacy/                # verbatim pre-refactor code (provenance only)
 ├── docs/thesis/           # objective function, naming, methodology notes
 ├── docs/analysis/         # committed analysis deliverables (md + html)
@@ -201,7 +201,7 @@ print(outcome.models["ABC_FA_Scout"].sortino)
 
 ## Roadmap
 
-- **v1.x (academic)** — the thesis formalization: frozen results, committee annexes, reproduction suite. *This release.*
+- **v1.x (academic)** — the thesis formalization: frozen results, reviewer annexes, reproduction suite. *This release.*
 - **v2 (heuristic portfolio optimizer)** — additional metaheuristics (PSO, GA, simulated annealing) behind the same `HeuristicOptimizer` contract; rebalancing backtests; a strategy-comparison CLI. The `core/` seam exists so none of this touches the frozen v1 surface.
 
 ## Contributing

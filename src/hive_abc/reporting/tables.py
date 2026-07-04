@@ -100,7 +100,7 @@ def result_metrics_frame(result: BacktestResult) -> pd.DataFrame:
 
 def runtime_frame(result: BacktestResult) -> pd.DataFrame:
     """
-    Execution-time table of a backtest run (committee task 14).
+    Execution-time table of a backtest run (reviewer task 14).
 
     Args:
         result: Output of `hive_abc.backtest.run_backtest`.

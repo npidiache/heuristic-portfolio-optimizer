@@ -101,7 +101,7 @@ Generated 2026-07-04 by `scripts/run_reproduction.py` (20 pinned seeds per stoch
 | PMVG (min-variance) |             1.939 |              1.941 |                 -0.061 |                  -0.061 |                  0.028 |                   0.029 |           1.243 |            1.243 |
 | 1/N                 |             3.305 |              3.305 |                 -0.079 |                  -0.079 |                  0.074 |                   0.075 |           1.414 |            1.414 |
 
-## Portfolio cardinality (committee comment 11)
+## Portfolio cardinality (reviewer comment 11)
 
 Number of significant holdings (weight > 0.5%) of each best-of-seeds portfolio:
 
@@ -114,7 +114,7 @@ Number of significant holdings (weight > 0.5%) of each best-of-seeds portfolio:
 | 1/N                 |                       20 |                   20 |                      20 |                 20 |                     20 |                 20 |                    16 |               20 |
 | PMVG (min-variance) |                       16 |                    5 |                       8 |                  4 |                     14 |                  6 |                     5 |                7 |
 
-## Wilcoxon significance on per-seed Sortino (committee comment 10)
+## Wilcoxon significance on per-seed Sortino (reviewer comment 10)
 
 Pairwise signed-rank tests over the 20 per-seed Sortino samples of each configuration (the thesis's significance methodology). 75% of all pairs are significant at 5%. Deterministic-vs-deterministic pairs (PMVG vs 1/N) have constant differences and report NaN.
 
@@ -241,7 +241,7 @@ Pairwise signed-rank tests over the 20 per-seed Sortino samples of each configur
 | fixed/2023_stability   | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
 | fixed/2023_stability   | PMVG_CVX                | Equally_Weighted        |    0      | True          | Equally_Weighted        |
 
-## Execution times (committee task 14)
+## Execution times (reviewer task 14)
 
 Mean seconds per optimizer run (one seed), per configuration:
 

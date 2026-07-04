@@ -20,7 +20,7 @@ class ABCEpsilonScout(BeeHive):
         x_new = x + phi * (best - x),  phi ~ U[0, 1)
 
     This variant is not part of the thesis's headline result tables; it is
-    kept as the annex companion of the PFA discussion (committee task 9).
+    kept as the annex companion of the PFA discussion (reviewer task 9).
 
     Args:
         epsilon: Probability of a pure random restart.

@@ -1,6 +1,6 @@
 """The portfolio utility objective actually executed in the thesis backtests.
 
-Committee tasks 4 and 5 are resolved here in code: the *documented* utility
+Reviewer tasks 4 and 5 are resolved here in code: the *documented* utility
 (thesis Eq. 13, written in terms of Sortino/Omega/CVaR/HHI) and the *executed*
 fitness (Eq. 18) are related but not identical — the fitness maximized by the
 optimizers is
@@ -39,7 +39,7 @@ REFERENCE_UNIVERSE_SIZE = 20
 @dataclass(frozen=True)
 class UtilityParams:
     """
-    Penalty weights of the executed thesis objective (committee task 5).
+    Penalty weights of the executed thesis objective (reviewer task 5).
 
     The defaults are the values the frozen backtest harness passed for every
     canonical run (`legacy/test_calibrated_crisis_performance_v2.py`,

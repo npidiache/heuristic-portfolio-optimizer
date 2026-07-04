@@ -28,9 +28,9 @@ flowchart TD
     style canonical fill:#1A1A2E,stroke:#FF6B6B,color:#FFFFFF
 ```
 
-## The z-score selection stage, exactly (committee comment 6)
+## The z-score selection stage, exactly (reviewer comment 6)
 
-The committee asked for the exact windows, aggregation weights, and
+The reviewers asked for the exact windows, aggregation weights, and
 selection thresholds of the z-score filters (thesis pp. 16–17). As
 executed (`hive_abc.data.universe`, faithful to the frozen harness):
 

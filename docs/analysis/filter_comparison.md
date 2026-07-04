@@ -1,4 +1,4 @@
-# Best model with vs. without the z-score filter (committee task 12)
+# Best model with vs. without the z-score filter (reviewer task 12)
 
 Generated 2026-07-04 by `scripts/run_filter_comparison.py` (20 pinned seeds per configuration).
 

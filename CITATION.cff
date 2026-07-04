@@ -3,9 +3,10 @@ message: "If you use this software, please cite it as below."
 title: "Heuristic portfolio optimizer (hive_abc)"
 abstract: >-
   Artificial Bee Colony variants for portfolio selection over the NASDAQ-100
-  across four volatility regimes. Formalization of the Master in Finance
-  thesis "Optimización de portafolios mediante variantes del algoritmo
-  Artificial Bee Colony".
+  across four volatility regimes. Formalization of the co-authored Master in
+  Finance thesis "Optimización de portafolios mediante variantes del
+  algoritmo Artificial Bee Colony" (Magíster en Finanzas, Universidad
+  Externado de Colombia).
 type: software
 authors:
   - family-names: Pidiache
@@ -13,6 +14,20 @@ authors:
 version: 1.0.0
 date-released: "2026-07-04"
 license: MIT
+preferred-citation:
+  type: thesis
+  title: >-
+    Optimización de portafolios mediante variantes del algoritmo Artificial
+    Bee Colony
+  authors:
+    - family-names: Pidiache
+      given-names: Norbey
+    - family-names: Ovalle
+      given-names: Luisa
+  year: 2026
+  institution:
+    name: "Universidad Externado de Colombia"
+  notes: "Thesis submitted for the Magíster en Finanzas degree"
 keywords:
   - portfolio optimization
   - artificial bee colony

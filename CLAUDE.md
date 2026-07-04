@@ -2,9 +2,10 @@
 
 ## What this repo is
 
-`heuristic-portfolio-optimizer` formalizes Norbey Pidiache's Master in Finance
-thesis: Artificial Bee Colony (ABC) variants for portfolio optimization over
-the NASDAQ-100 across four volatility regimes. The installable package is
+`heuristic-portfolio-optimizer` formalizes the Master in Finance thesis by
+Norbey Pidiache & Luisa Ovalle (Magíster en Finanzas, Universidad Externado
+de Colombia): Artificial Bee Colony (ABC) variants for portfolio optimization
+over the NASDAQ-100 across four volatility regimes. The installable package is
 `hive_abc` (`from hive_abc import ABCFAEM`). v1.x is the academic release; the
 v2 roadmap generalizes to other metaheuristics (PSO, GA) behind the
 `hive_abc.core.HeuristicOptimizer` seam.

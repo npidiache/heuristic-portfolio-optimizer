@@ -18,7 +18,7 @@
 
 ## Overview
 
-`hive_abc` formalizes the thesis *"Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony"* (Pidiache, 2026 — Master in Finance): four ABC-family metaheuristics optimize NASDAQ-100 portfolios under a multi-objective utility (return − CVaR − L1 − cardinality) across four volatility regimes — the COVID-19 crash, the 2008 Global Financial Crisis, the 2022 geopolitical shock, and the 2023–2024 stability window — against classical minimum-variance and 1/N benchmarks.
+`hive_abc` formalizes the thesis *"Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony"* by **Norbey Pidiache & Luisa Ovalle**, submitted for the **Magíster en Finanzas at Universidad Externado de Colombia** (2026): four ABC-family metaheuristics optimize NASDAQ-100 portfolios under a multi-objective utility (return − CVaR − L1 − cardinality) across four volatility regimes — the COVID-19 crash, the 2008 Global Financial Crisis, the 2022 geopolitical shock, and the 2023–2024 stability window — against classical minimum-variance and 1/N benchmarks.
 
 The repository is built on four properties:
 
@@ -206,6 +206,8 @@ print(outcome.models["ABC_FA_Scout"].sortino)
 See [CONTRIBUTING.md](CONTRIBUTING.md) — uv workflow, ruff/mypy-strict/90%-coverage gates, the frozen-results contract, and the PR checklist. Agent instructions live in [CLAUDE.md](CLAUDE.md).
 
 ## References and citation
+
+**Thesis** (co-authored): Pidiache, N., & Ovalle, L. (2026). *Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony*. Magíster en Finanzas, Universidad Externado de Colombia.
 
 Key literature (full list in [`docs/thesis/methodology.md`](docs/thesis/methodology.md)):
 

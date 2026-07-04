@@ -123,7 +123,7 @@ Bitwise equality with the thesis tables is impossible by design — the legacy h
 
 ## Reviewer analyses
 
-Annex-ready material for the reviewers' comments (tracker: [`thesis/`](thesis/)):
+Annex-ready material for the reviewers' comments (tracker: [`thesis/committee_tasks.md`](thesis/committee_tasks.md)):
 
 | Task | Deliverable | Headline |
 | --- | --- | --- |

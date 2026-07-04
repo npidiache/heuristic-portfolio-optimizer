@@ -69,6 +69,42 @@ def comparison_frame(
     return frame
 
 
+def cardinality_table(summary: dict[str, Any]) -> pd.DataFrame:
+    """Holdings count per model x configuration (committee comment 11)."""
+    records = []
+    for label, payload in summary["runs"].items():
+        for row in payload["cardinality"]:
+            records.append(
+                {
+                    "model": row["A"],
+                    "configuration": label,
+                    "cardinality": row["c"],
+                }
+            )
+    frame = pd.DataFrame(records)
+    return frame.pivot_table(
+        index="model", columns="configuration", values="cardinality"
+    ).astype(int)
+
+
+def wilcoxon_section(summary: dict[str, Any]) -> pd.DataFrame:
+    """
+    Pairwise Wilcoxon tests on per-seed Sortino for every configuration
+    (committee comment 10), replicating the thesis's significance analysis.
+    """
+    from hive_abc.metrics.stats import wilcoxon_sortino_matrix
+
+    frames = []
+    for label, payload in summary["runs"].items():
+        per_seed = pd.DataFrame(payload["sortino_per_seed"])
+        table = wilcoxon_sortino_matrix(per_seed)
+        table.insert(0, "configuration", label)
+        frames.append(table)
+    combined = pd.concat(frames, ignore_index=True)
+    combined["p_value"] = combined["p_value"].round(4)
+    return combined
+
+
 def runtime_table(summary: dict[str, Any]) -> pd.DataFrame:
     """Execution-time table across all configurations (task 14)."""
     records = []
@@ -161,6 +197,41 @@ def main() -> None:
             "",
         ]
         html_sections.append((f"{universe} — {slug}", frame_to_html(frame)))
+
+    cardinalities = with_display_names(cardinality_table(summary))
+    md += [
+        "## Portfolio cardinality (committee comment 11)",
+        "",
+        "Number of significant holdings (weight > 0.5%) of each best-of-seeds"
+        " portfolio:",
+        "",
+        cardinalities.to_markdown(),
+        "",
+    ]
+    html_sections.append(
+        ("Portfolio cardinality (comment 11)", frame_to_html(cardinalities, "{:d}"))
+    )
+
+    wilcoxon_frame = wilcoxon_section(summary)
+    significant_share = float(wilcoxon_frame["significant"].mean())
+    md += [
+        "## Wilcoxon significance on per-seed Sortino (committee comment 10)",
+        "",
+        "Pairwise signed-rank tests over the 20 per-seed Sortino samples of"
+        " each configuration (the thesis's significance methodology)."
+        f" {significant_share:.0%} of all pairs are significant at 5%."
+        " Deterministic-vs-deterministic pairs (PMVG vs 1/N) have constant"
+        " differences and report NaN.",
+        "",
+        wilcoxon_frame.to_markdown(index=False),
+        "",
+    ]
+    html_sections.append(
+        (
+            "Wilcoxon significance (comment 10)",
+            frame_to_html(wilcoxon_frame.set_index("configuration"), "{:.4f}"),
+        )
+    )
 
     runtimes = with_display_names(runtime_table(summary))
     md += [

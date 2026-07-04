@@ -6,40 +6,53 @@ this note is the engineer's index into it.
 
 ## Pipeline
 
+```mermaid
+flowchart TD
+    data[("frozen NASDAQ prices 2000–2025<br/><code>data/frozen/</code>")]
+    data --> universe["universe selection<br/><code>hive_abc.data.universe</code>"]
+    universe -- dynamic --> dyn["market z-score screen<br/>momentum 12-1, −vol, −MDD; ρ &lt; 0.8 greedy"]
+    universe -- fixed --> fix["fundamentals top-20<br/><code>data/frozen/z_score.csv</code>"]
+    dyn --> moments
+    fix --> moments
+    moments["moments μ, Σ on daily log returns<br/><code>hive_abc.data.loading</code>"]
+    moments --> objective["objective: Eq. 18 scalarization<br/>return − λ·CVaR − η·L1 − λc·card<br/><code>hive_abc.objectives</code> — see objective_function.md"]
+    objective --> optimizers["optimizers, 20 pinned seeds each<br/>ABC / ABC-FA / ABC-FAEM / ABC-GSA / PMVG / 1/N<br/><code>hive_abc.algorithms + benchmarks</code>"]
+    calibration[("regime_parameters.json<br/>multi-regime robust calibration<br/>see calibration.md; scripts in legacy/")]
+    calibration -.-> optimizers
+    optimizers --> regimes["4 volatility regimes<br/>covid_2020 · gfc_2007_2009 · war_2022 · 2023_stability<br/><code>hive_abc.backtest.periods</code>"]
+    regimes --> metrics["Sortino · MDD · Jensen α vs ^IXIC · Omega · cardinality · HHI<br/>+ Wilcoxon on per-seed Sortino<br/><code>hive_abc.metrics</code>"]
+    metrics --> canonical[("canonical frozen tables<br/><code>data/canonical/thesis_results_v1.json</code>")]
+
+    style data fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style calibration fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style canonical fill:#1A1A2E,stroke:#FF6B6B,color:#FFFFFF
 ```
-frozen NASDAQ prices (2000–2025)
-        │
-        ▼
-universe selection ──────────────► hive_abc.data.universe
-  ├─ dynamic market z-score          (momentum 12-1, −vol, −MDD; ρ<0.8 greedy)
-  └─ fixed fundamentals top-20       (data/frozen/z_score.csv)
-        │
-        ▼
-moments (μ, Σ) on daily log returns ► hive_abc.data.loading
-        │
-        ▼
-objective: Eq. 18 scalarization ────► hive_abc.objectives
-  (return − λ·CVaR − η·L1 − λc·card;  see docs/thesis/objective_function.md)
-        │
-        ▼
-optimizers (20 seeds each) ─────────► hive_abc.algorithms + benchmarks
-  ABC / ABC-FA / ABC-FAEM / ABC-GSA / PMVG / 1/N
-  calibrated per regime ─────────────► backtest/regime_parameters.json
-    (multi-regime robust calibration: synthetic scenarios, worst-case
-     Sortino, 3-seed-period consensus — see docs/thesis/calibration.md;
-     pipeline scripts preserved in legacy/)
-        │
-        ▼
-4 volatility regimes ───────────────► hive_abc.backtest.periods
-  covid_2020 · gfc_2007_2009 · war_2022 · 2023_stability
-        │
-        ▼
-metrics (Sortino, MDD, Jensen α vs ^IXIC, Omega, cardinality, HHI)
-  + Wilcoxon on per-seed Sortino ───► hive_abc.metrics
-        │
-        ▼
-canonical tables (frozen) ──────────► data/canonical/thesis_results_v1.json
-```
+
+## The z-score selection stage, exactly (committee comment 6)
+
+The committee asked for the exact windows, aggregation weights, and
+selection thresholds of the z-score filters (thesis pp. 16–17). As
+executed (`hive_abc.data.universe`, faithful to the frozen harness):
+
+**Dynamic market z-score** (recomputed ex-ante per backtest window):
+
+- **Window**: the 252 calendar days ending the day before the backtest
+  start (no test-window data — the look-ahead-bias control); tickers need
+  ≥ 180 observations in that window (relaxed once to 120 if none survive).
+- **Factors** (on daily log returns): momentum 12-1 = cumulative return
+  excluding the most recent 21 rows; volatility = std of returns;
+  max drawdown of the compounded path.
+- **Aggregation**: `score = 0.5·z(momentum) + 0.3·z(−volatility)
+  + 0.2·z(−max drawdown)` with population z-scores (ddof = 0).
+- **Selection**: rank descending, greedily accept tickers whose absolute
+  return correlation with every already-selected ticker is < 0.8; top up
+  ignoring correlation if fewer than 20 survive; cut to exactly n = 20.
+
+**Fixed fundamentals z-score** (static): top-20 rows of
+`data/frozen/z_score.csv` by `Z_Score` (semicolon-delimited, decimal
+commas), excluding the `NASDAQ_100` index row. The underlying fundamentals
+aggregation (margins, ROACE/ROATA, P/E, P/B, PEG, current ratio, leverage)
+was computed outside this pipeline and is frozen in that file.
 
 ## Reference literature
 

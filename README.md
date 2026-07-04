@@ -57,26 +57,29 @@ Full naming and parameter mapping (legacy classes → public API): [`docs/thesis
 
 ## Methodology
 
-```
-frozen NASDAQ prices (2000–2025)
-        │
-        ▼
-universe selection (n = 20)
-  ├─ dynamic market z-score     0.5·z(momentum 12-1) + 0.3·z(−vol) + 0.2·z(−MDD), ρ < 0.8
-  └─ fixed fundamentals top-20  data/frozen/z_score.csv
-        │
-        ▼
-objective  −[ wᵀμ − 0.7·CVaR₀.₉₉(Rw) − 5·10⁻⁴·‖w‖₁ − λc·card(w) ]
-        │
-        ▼
-optimizers × 20 pinned seeds, calibrated per regime
-  ABC · ABC-FA · ABC-FAEM · ABC-GSA · PMVG · 1/N
-        │
-        ▼
-4 volatility regimes            covid_2020 · gfc_2007_2009 · war_2022 · 2023_stability
-        │
-        ▼
-metrics + Wilcoxon              Sortino · max drawdown · Jensen α (^IXIC) · Omega · HHI
+```mermaid
+flowchart TD
+    data[("frozen NASDAQ prices<br/>2000–2025")]
+    data --> universe{"universe selection<br/>n = 20"}
+    universe -- dynamic --> dyn["market z-score screen<br/>0.5·z(momentum 12-1) + 0.3·z(−vol) + 0.2·z(−MDD)<br/>greedy diversification ρ &lt; 0.8"]
+    universe -- fixed --> fix["fundamentals top-20<br/>data/frozen/z_score.csv"]
+    dyn --> objective
+    fix --> objective
+    objective["objective (Eq. 18)<br/>−[ wᵀμ − 0.7·CVaR₀.₉₉(Rw) − 5·10⁻⁴·‖w‖₁ − λc·card(w) ]"]
+    objective --> optimizers["optimizers × 20 pinned seeds, calibrated per regime<br/>ABC · ABC-FA · ABC-FAEM · ABC-GSA · PMVG · 1/N"]
+    optimizers --> regimes["4 volatility regimes<br/>covid_2020 · gfc_2007_2009 · war_2022 · 2023_stability"]
+    regimes --> metrics["metrics + Wilcoxon<br/>Sortino · max drawdown · Jensen α vs ^IXIC · Omega · HHI"]
+    metrics --> canonical[("canonical frozen results<br/>thesis_results_v1.json")]
+
+    style data fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style canonical fill:#1A1A2E,stroke:#FF6B6B,color:#FFFFFF
+    style universe fill:#F8FAFC,stroke:#00E5FF,color:#1E293B
+    style objective fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style optimizers fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style regimes fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style metrics fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style dyn fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
+    style fix fill:#F8FAFC,stroke:#E2E8F0,color:#1E293B
 ```
 
 The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (committee tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).

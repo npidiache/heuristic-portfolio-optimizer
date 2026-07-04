@@ -101,6 +101,146 @@ Generated 2026-07-04 by `scripts/run_reproduction.py` (20 pinned seeds per stoch
 | PMVG (min-variance) |             1.939 |              1.941 |                 -0.061 |                  -0.061 |                  0.028 |                   0.029 |           1.243 |            1.243 |
 | 1/N                 |             3.305 |              3.305 |                 -0.079 |                  -0.079 |                  0.074 |                   0.075 |           1.414 |            1.414 |
 
+## Portfolio cardinality (committee comment 11)
+
+Number of significant holdings (weight > 0.5%) of each best-of-seeds portfolio:
+
+| model               |   dynamic/2023_stability |   dynamic/covid_2020 |   dynamic/gfc_2007_2009 |   dynamic/war_2022 |   fixed/2023_stability |   fixed/covid_2020 |   fixed/gfc_2007_2009 |   fixed/war_2022 |
+|:--------------------|-------------------------:|---------------------:|------------------------:|-------------------:|-----------------------:|-------------------:|----------------------:|-----------------:|
+| ABC-FA (Bacanin)    |                       18 |                   20 |                      19 |                 17 |                     18 |                 17 |                    15 |               19 |
+| ABC-FAEM            |                        9 |                    8 |                      10 |                 10 |                     10 |                 11 |                     5 |                9 |
+| ABC (original)      |                        6 |                    8 |                      10 |                  8 |                      9 |                  7 |                     6 |               10 |
+| ABC-GSA             |                        8 |                    7 |                       9 |                 10 |                     10 |                  9 |                     4 |                9 |
+| 1/N                 |                       20 |                   20 |                      20 |                 20 |                     20 |                 20 |                    16 |               20 |
+| PMVG (min-variance) |                       16 |                    5 |                       8 |                  4 |                     14 |                  6 |                     5 |                7 |
+
+## Wilcoxon significance on per-seed Sortino (committee comment 10)
+
+Pairwise signed-rank tests over the 20 per-seed Sortino samples of each configuration (the thesis's significance methodology). 75% of all pairs are significant at 5%. Deterministic-vs-deterministic pairs (PMVG vs 1/N) have constant differences and report NaN.
+
+| configuration          | a                       | b                       |   p_value | significant   | winner                  |
+|:-----------------------|:------------------------|:------------------------|----------:|:--------------|:------------------------|
+| dynamic/covid_2020     | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| dynamic/covid_2020     | ABC_Original            | ABC_FA_Scout            |    0.2774 | False         | ABC_Original            |
+| dynamic/covid_2020     | ABC_Original            | ABC_Scout_Gravitacional |    0.2024 | False         | ABC_Original            |
+| dynamic/covid_2020     | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| dynamic/covid_2020     | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| dynamic/covid_2020     | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| dynamic/covid_2020     | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/covid_2020     | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | PMVG_CVX                |
+| dynamic/covid_2020     | ABC_FA_Bacanin          | Equally_Weighted        |    0.1536 | False         | ABC_FA_Bacanin          |
+| dynamic/covid_2020     | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.9851 | False         | ABC_Scout_Gravitacional |
+| dynamic/covid_2020     | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| dynamic/covid_2020     | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| dynamic/covid_2020     | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/covid_2020     | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/covid_2020     | PMVG_CVX                | Equally_Weighted        |    0      | True          | PMVG_CVX                |
+| dynamic/gfc_2007_2009  | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| dynamic/gfc_2007_2009  | ABC_Original            | ABC_FA_Scout            |    0.6215 | False         | ABC_FA_Scout            |
+| dynamic/gfc_2007_2009  | ABC_Original            | ABC_Scout_Gravitacional |    0.8983 | False         | ABC_Original            |
+| dynamic/gfc_2007_2009  | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| dynamic/gfc_2007_2009  | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| dynamic/gfc_2007_2009  | ABC_FA_Bacanin          | ABC_FA_Scout            |    0.0001 | True          | ABC_FA_Scout            |
+| dynamic/gfc_2007_2009  | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/gfc_2007_2009  | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | ABC_FA_Bacanin          |
+| dynamic/gfc_2007_2009  | ABC_FA_Bacanin          | Equally_Weighted        |    0.024  | True          | ABC_FA_Bacanin          |
+| dynamic/gfc_2007_2009  | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.6215 | False         | ABC_FA_Scout            |
+| dynamic/gfc_2007_2009  | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| dynamic/gfc_2007_2009  | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| dynamic/gfc_2007_2009  | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/gfc_2007_2009  | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/gfc_2007_2009  | PMVG_CVX                | Equally_Weighted        |    0      | True          | Equally_Weighted        |
+| dynamic/war_2022       | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| dynamic/war_2022       | ABC_Original            | ABC_FA_Scout            |    0.04   | True          | ABC_Original            |
+| dynamic/war_2022       | ABC_Original            | ABC_Scout_Gravitacional |    0.0583 | False         | ABC_Original            |
+| dynamic/war_2022       | ABC_Original            | PMVG_CVX                |    0.0001 | True          | ABC_Original            |
+| dynamic/war_2022       | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| dynamic/war_2022       | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| dynamic/war_2022       | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/war_2022       | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | PMVG_CVX                |
+| dynamic/war_2022       | ABC_FA_Bacanin          | Equally_Weighted        |    0.0017 | True          | ABC_FA_Bacanin          |
+| dynamic/war_2022       | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.7012 | False         | ABC_FA_Scout            |
+| dynamic/war_2022       | ABC_FA_Scout            | PMVG_CVX                |    0.0532 | False         | ABC_FA_Scout            |
+| dynamic/war_2022       | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| dynamic/war_2022       | ABC_Scout_Gravitacional | PMVG_CVX                |    0.0897 | False         | ABC_Scout_Gravitacional |
+| dynamic/war_2022       | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/war_2022       | PMVG_CVX                | Equally_Weighted        |    0      | True          | PMVG_CVX                |
+| dynamic/2023_stability | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| dynamic/2023_stability | ABC_Original            | ABC_FA_Scout            |    0.2305 | False         | ABC_Original            |
+| dynamic/2023_stability | ABC_Original            | ABC_Scout_Gravitacional |    0.3118 | False         | ABC_Original            |
+| dynamic/2023_stability | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| dynamic/2023_stability | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| dynamic/2023_stability | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| dynamic/2023_stability | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/2023_stability | ABC_FA_Bacanin          | PMVG_CVX                |    0.0136 | True          | ABC_FA_Bacanin          |
+| dynamic/2023_stability | ABC_FA_Bacanin          | Equally_Weighted        |    0.2774 | False         | ABC_FA_Bacanin          |
+| dynamic/2023_stability | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.8695 | False         | ABC_Scout_Gravitacional |
+| dynamic/2023_stability | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| dynamic/2023_stability | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| dynamic/2023_stability | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/2023_stability | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| dynamic/2023_stability | PMVG_CVX                | Equally_Weighted        |    0      | True          | Equally_Weighted        |
+| fixed/covid_2020       | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| fixed/covid_2020       | ABC_Original            | ABC_FA_Scout            |    0.0897 | False         | ABC_Original            |
+| fixed/covid_2020       | ABC_Original            | ABC_Scout_Gravitacional |    0.0153 | True          | ABC_Original            |
+| fixed/covid_2020       | ABC_Original            | PMVG_CVX                |    0.0072 | True          | ABC_Original            |
+| fixed/covid_2020       | ABC_Original            | Equally_Weighted        |    0.0001 | True          | ABC_Original            |
+| fixed/covid_2020       | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| fixed/covid_2020       | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/covid_2020       | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | PMVG_CVX                |
+| fixed/covid_2020       | ABC_FA_Bacanin          | Equally_Weighted        |    0.0083 | True          | ABC_FA_Bacanin          |
+| fixed/covid_2020       | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.6215 | False         | ABC_FA_Scout            |
+| fixed/covid_2020       | ABC_FA_Scout            | PMVG_CVX                |    0.7285 | False         | ABC_FA_Scout            |
+| fixed/covid_2020       | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| fixed/covid_2020       | ABC_Scout_Gravitacional | PMVG_CVX                |    0.4091 | False         | PMVG_CVX                |
+| fixed/covid_2020       | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/covid_2020       | PMVG_CVX                | Equally_Weighted        |    0      | True          | PMVG_CVX                |
+| fixed/gfc_2007_2009    | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| fixed/gfc_2007_2009    | ABC_Original            | ABC_FA_Scout            |    0.1054 | False         | ABC_Original            |
+| fixed/gfc_2007_2009    | ABC_Original            | ABC_Scout_Gravitacional |    0.0522 | False         | ABC_Original            |
+| fixed/gfc_2007_2009    | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| fixed/gfc_2007_2009    | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| fixed/gfc_2007_2009    | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| fixed/gfc_2007_2009    | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/gfc_2007_2009    | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | PMVG_CVX                |
+| fixed/gfc_2007_2009    | ABC_FA_Bacanin          | Equally_Weighted        |    0.0296 | True          | ABC_FA_Bacanin          |
+| fixed/gfc_2007_2009    | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.9854 | False         | ABC_Scout_Gravitacional |
+| fixed/gfc_2007_2009    | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| fixed/gfc_2007_2009    | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| fixed/gfc_2007_2009    | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/gfc_2007_2009    | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/gfc_2007_2009    | PMVG_CVX                | Equally_Weighted        |    0      | True          | PMVG_CVX                |
+| fixed/war_2022         | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| fixed/war_2022         | ABC_Original            | ABC_FA_Scout            |    0.3683 | False         | ABC_Original            |
+| fixed/war_2022         | ABC_Original            | ABC_Scout_Gravitacional |    0.1231 | False         | ABC_Original            |
+| fixed/war_2022         | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| fixed/war_2022         | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| fixed/war_2022         | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| fixed/war_2022         | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/war_2022         | ABC_FA_Bacanin          | PMVG_CVX                |    0.1429 | False         | PMVG_CVX                |
+| fixed/war_2022         | ABC_FA_Bacanin          | Equally_Weighted        |    1      | False         | ABC_FA_Bacanin          |
+| fixed/war_2022         | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.1769 | False         | ABC_FA_Scout            |
+| fixed/war_2022         | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| fixed/war_2022         | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| fixed/war_2022         | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/war_2022         | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/war_2022         | PMVG_CVX                | Equally_Weighted        |    0      | True          | PMVG_CVX                |
+| fixed/2023_stability   | ABC_Original            | ABC_FA_Bacanin          |    0      | True          | ABC_Original            |
+| fixed/2023_stability   | ABC_Original            | ABC_FA_Scout            |    0.114  | False         | ABC_Original            |
+| fixed/2023_stability   | ABC_Original            | ABC_Scout_Gravitacional |    0.0296 | True          | ABC_Original            |
+| fixed/2023_stability   | ABC_Original            | PMVG_CVX                |    0      | True          | ABC_Original            |
+| fixed/2023_stability   | ABC_Original            | Equally_Weighted        |    0      | True          | ABC_Original            |
+| fixed/2023_stability   | ABC_FA_Bacanin          | ABC_FA_Scout            |    0      | True          | ABC_FA_Scout            |
+| fixed/2023_stability   | ABC_FA_Bacanin          | ABC_Scout_Gravitacional |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/2023_stability   | ABC_FA_Bacanin          | PMVG_CVX                |    0      | True          | ABC_FA_Bacanin          |
+| fixed/2023_stability   | ABC_FA_Bacanin          | Equally_Weighted        |    0.0826 | False         | ABC_FA_Bacanin          |
+| fixed/2023_stability   | ABC_FA_Scout            | ABC_Scout_Gravitacional |    0.8695 | False         | ABC_Scout_Gravitacional |
+| fixed/2023_stability   | ABC_FA_Scout            | PMVG_CVX                |    0      | True          | ABC_FA_Scout            |
+| fixed/2023_stability   | ABC_FA_Scout            | Equally_Weighted        |    0      | True          | ABC_FA_Scout            |
+| fixed/2023_stability   | ABC_Scout_Gravitacional | PMVG_CVX                |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/2023_stability   | ABC_Scout_Gravitacional | Equally_Weighted        |    0      | True          | ABC_Scout_Gravitacional |
+| fixed/2023_stability   | PMVG_CVX                | Equally_Weighted        |    0      | True          | Equally_Weighted        |
+
 ## Execution times (committee task 14)
 
 Mean seconds per optimizer run (one seed), per configuration:

@@ -63,6 +63,12 @@ verified by unit tests:
 
 Notes for the thesis text:
 
+- **CVaR vs. Expected Shortfall (committee comment 7):** the two names
+  refer to the *same* risk measure — Conditional Value-at-Risk is also
+  called Expected Shortfall (and Average Value-at-Risk) in the literature
+  (Rockafellar & Uryasev, 2000). The thesis text can use either, but should
+  state the equivalence once and then use one term consistently; the code
+  standardizes on CVaR.
 - The value α = 0.99 follows the **riskfolio-lib parameterization** of
   `CVaR_Hist`, where `alpha` is the coverage of the sorted-return average —
   not the usual "5% tail" significance convention. The native

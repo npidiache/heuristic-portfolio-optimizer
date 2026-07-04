@@ -1,17 +1,17 @@
-<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="960" height="200" viewBox="0 0 960 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Obsidian Aqua brand mark: hive hexagons + wordmark -->
-  <rect width="720" height="180" rx="16" fill="#1A1A2E"/>
+  <rect width="960" height="200" rx="16" fill="#1A1A2E"/>
   <!-- hexagon cluster -->
   <g stroke="#00E5FF" stroke-width="3" fill="none" stroke-linejoin="round">
-    <path d="M96 38 L124 54 L124 86 L96 102 L68 86 L68 54 Z"/>
-    <path d="M152 70 L180 86 L180 118 L152 134 L124 118 L124 86 Z" opacity="0.65"/>
-    <path d="M96 102 L124 118 L124 150 L96 166 L68 150 L68 118 Z" opacity="0.35"/>
+    <path d="M106 44 L134 60 L134 92 L106 108 L78 92 L78 60 Z"/>
+    <path d="M162 76 L190 92 L190 124 L162 140 L134 124 L134 92 Z" opacity="0.65"/>
+    <path d="M106 108 L134 124 L134 156 L106 172 L78 156 L78 124 Z" opacity="0.35"/>
   </g>
-  <circle cx="96" cy="70" r="6" fill="#00E5FF"/>
-  <circle cx="152" cy="102" r="6" fill="#00E5FF" opacity="0.65"/>
+  <circle cx="106" cy="76" r="6" fill="#00E5FF"/>
+  <circle cx="162" cy="108" r="6" fill="#00E5FF" opacity="0.65"/>
   <!-- wordmark -->
-  <text x="228" y="86" font-family="Outfit, Helvetica Neue, Arial, sans-serif"
-        font-size="42" font-weight="600" fill="#FFFFFF">heuristic portfolio optimizer</text>
-  <text x="230" y="126" font-family="JetBrains Mono, Fira Code, monospace"
-        font-size="19" fill="#00E5FF">hive_abc — artificial bee colony variants for portfolio selection</text>
+  <text x="238" y="98" font-family="Outfit, Helvetica Neue, Arial, sans-serif"
+        font-size="40" font-weight="600" fill="#FFFFFF">heuristic portfolio optimizer</text>
+  <text x="240" y="136" font-family="JetBrains Mono, Fira Code, monospace"
+        font-size="15" fill="#00E5FF">hive_abc — artificial bee colony variants for portfolio selection</text>
 </svg>

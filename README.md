@@ -8,11 +8,11 @@
 
 ![python](https://img.shields.io/badge/python-3.13-00e5ff?style=flat-square&labelColor=1a1a2e)
 ![package](https://img.shields.io/badge/uv-managed-00e5ff?style=flat-square&labelColor=1a1a2e)
-![lint](https://img.shields.io/badge/ruff-clean-00e5ff?style=flat-square&labelColor=1a1a2e)
-![types](https://img.shields.io/badge/mypy-strict-00e5ff?style=flat-square&labelColor=1a1a2e)
+![lint](https://img.shields.io/badge/ruff-clean-e2e8f0?style=flat-square&labelColor=1a1a2e)
+![types](https://img.shields.io/badge/mypy-strict-e2e8f0?style=flat-square&labelColor=1a1a2e)
 ![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-00e5ff?style=flat-square&labelColor=1a1a2e)
 ![thesis](https://img.shields.io/badge/thesis-v1.0_frozen-ff6b6b?style=flat-square&labelColor=1a1a2e)
-![license](https://img.shields.io/badge/license-MIT-00e5ff?style=flat-square&labelColor=1a1a2e)
+![license](https://img.shields.io/badge/license-MIT-64748b?style=flat-square&labelColor=1a1a2e)
 
 </div>
 
@@ -76,10 +76,13 @@ flowchart TD
     style universe fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
     style objective fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
     style optimizers fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
-    style regimes fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
-    style metrics fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    style regimes fill:#1A1A2E,stroke:#E2E8F0,color:#FFFFFF
+    style metrics fill:#1A1A2E,stroke:#E2E8F0,color:#FFFFFF
     style dyn fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
     style fix fill:#1A1A2E,stroke:#00E5FF,color:#FFFFFF
+    linkStyle 0,1,2,3,4,5 stroke:#00E5FF,stroke-width:2px
+    linkStyle 6,7 stroke:#E2E8F0,stroke-width:2px
+    linkStyle 8 stroke:#FF6B6B,stroke-width:2px
 ```
 
 The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (reviewer tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).

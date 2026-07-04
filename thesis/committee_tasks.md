@@ -1,45 +1,233 @@
-# Committee review tracker — all 15 comments
+# Committee review — all 15 comments, answers included
 
-Exported from `ABC Comments.xlsx` (2026-06-27) and validated against this
-repository on 2026-07-04. The repo produces annex-ready material; the Word
-document itself is edited outside this repository (see CLAUDE.md).
+Exported from `ABC Comments.xlsx` (2026-06-27), validated against this
+repository on 2026-07-04. **This document is self-contained**: every
+comment's answer (or source material) is summarized inline, so it can be
+reviewed top-to-bottom without navigating the repository. Links point to
+the full detail for anyone who wants to go deeper.
 
-Legend — **Repo: done** = the analytical/technical substance exists here and
-only needs transcription; **Repo: supports** = the repo provides the source
-material for a document edit; **Docx only** = pure document/wording work with
-no repo counterpart.
+## Status at a glance
 
-## Norbey's tasks
-
-| # | Comment (summary) | Repo resolution | Status |
+| # | Assignee | Comment (short) | Status |
 | --- | --- | --- | --- |
-| 4 | Is the multi-objective utility (Eq. 13) the same as the fitness function (Eq. 18)? | [`docs/thesis/objective_function.md`](../docs/thesis/objective_function.md): related but intentionally distinct — Eq. 13 is the preference, Eq. 18 its executable scalarization; term-by-term mapping table provided. | **Repo: done** |
-| 5 | Penalty weights λ and η of Eq. 13 are never defined. | Executed values extracted from the frozen harness: λ = 0.7 (CVaR, α = 0.99), η = 5·10⁻⁴ (L1), λ_card = 0.008·n/20 (target 10 holdings @1%). Frozen in `hive_abc.objectives.UtilityParams`; documented with task 4. | **Repo: done** |
-| 9 | PFA probabilistic trigger: no value given, no sensitivity analysis. Sweep 0.3/0.4/0.5, ABC-FAEM only, must not affect final results. | [`docs/analysis/pfa_sensitivity.md`](../docs/analysis/pfa_sensitivity.md): (§1) calibrated sweep bit-identical across {0.3, 0.4, 0.5, 1.0}; (§2) mechanism defense — activation-frequency diagnostic (scout dormant above `max_trials ≈ 50`; calibrated value 300), p_fa 0→1 ablation with Wilcoxon (FAEM elite move directionally better mean fitness in 3/4 periods, not significant at 20 seeds), convergence profiles; (§3) prepared oral-defense summary. | **Repo: done** |
-| 12 | Compare best model with vs. without the z-score filter; brief mention + annex detail. | [`docs/analysis/filter_comparison.md`](../docs/analysis/filter_comparison.md): the filter is a crisis-defense mechanism (+2.35/+0.57 Sortino in COVID/GFC; −1.37/−0.45 in stability/war). Annex tables ready. | **Repo: done** |
-| 14 | Include algorithm execution times. | Execution-times table (mean s/run per model × configuration) in [`docs/analysis/reproduction_report.md`](../docs/analysis/reproduction_report.md). | **Repo: done** |
+| 1 | Luisa | Include an abstract | Docx only — draft available below |
+| 2 | Luisa | Standardize model names, fix typos | Supported — naming table below |
+| 3 | Luisa | Define `b0`, `max_trials`, etc. somewhere | **Answered below** |
+| 4 | Norbey | Is Eq. 13 the same as Eq. 18? | **Answered below** |
+| 5 | Norbey | λ and η never defined | **Answered below** |
+| 6 | Luisa | Detail the z-score filters exactly | **Answered below** |
+| 7 | Luisa | CVaR vs Expected Shortfall inconsistency | **Answered below** |
+| 8 | Luisa | Eq. 20 looks truncated | Docx only (note says it may be fine) |
+| 9 | Norbey | PFA value + sensitivity analysis | **Answered below** |
+| 10 | Luisa | Include Wilcoxon p-values in results | **Answered below** |
+| 11 | Luisa | Number of assets per portfolio | **Answered below** |
+| 12 | Norbey | Best model with vs. without the filter | **Answered below** |
+| 13 | Luisa | Wrong PMVG-vs-ABC claim on p. 31 | **Corrected wording below** |
+| 14 | Norbey | Include execution times | **Answered below** |
+| 15 | Luisa | Add figures to the document | Supported — sources listed below |
 
-## Luisa's tasks (repo support where applicable)
+Everything below only needs transcription into the Word document (handled
+outside this repository). The frozen thesis results were never touched:
+checksum and regression tests stayed green through every analysis.
 
-| # | Comment (summary) | Repo support | Status |
-| --- | --- | --- | --- |
-| 1 | Include an abstract. | The README [Overview](../README.md#overview) paragraph is a ready first draft (EN; needs ES translation). | Docx only — draft available |
-| 2 | Standardize model names (ABC-FAEM vs "ABC-FA-EM") and fix typos. | [`docs/thesis/naming.md`](../docs/thesis/naming.md) is the canonical naming table to standardize against. | **Repo: supports** |
-| 3 | Parameters like `b0` and `max_trials` appear on p. 15 but are never defined; "define them in some section". | [`docs/thesis/calibration.md`](../docs/thesis/calibration.md): full parameter-definition table + calibration provenance (four-pillar pipeline) + frozen per-regime values. Ready to transcribe as the missing section. | **Repo: done** — transcription pending |
-| 6 | Detail the z-score filters: exact windows, aggregation weights, selection thresholds (pp. 16–17). | [`docs/thesis/methodology.md`](../docs/thesis/methodology.md) § "The z-score selection stage, exactly": 252-day ex-ante window (≥180 obs), weights 0.5/0.3/0.2 on z(momentum 12-1)/z(−vol)/z(−MDD), ρ < 0.8 greedy diversification, n = 20; fixed-universe top-20 rule. Both filters covered (the comment's note asks to check both). | **Repo: done** — transcription pending |
-| 7 | CVaR vs. Expected Shortfall used inconsistently. | [`docs/thesis/objective_function.md`](../docs/thesis/objective_function.md): equivalence note (CVaR ≡ Expected Shortfall, Rockafellar & Uryasev 2000) with the recommendation to state it once and standardize on one term. | **Repo: supports** |
-| 8 | Eq. 20 (p. 23) looks truncated (ends in "+"). | — (typography in the Word document; the note says it may actually be fine). | Docx only |
-| 10 | Include p-values / Wilcoxon tests in the result tables. | [`docs/analysis/reproduction_report.md`](../docs/analysis/reproduction_report.md) § "Wilcoxon significance": full pairwise signed-rank tests on per-seed Sortino for all 8 configurations, coherent with the dominance discourse (ABC-family-vs-benchmark pairs are the significant ones). | **Repo: done** — transcription pending |
-| 11 | Report the number of assets per portfolio. | Same report, § "Portfolio cardinality": holdings count (weight > 0.5%) per model × configuration; also in the canonical JSON (`cardinality` block, keys `c`/`mw`/`hhi`). | **Repo: done** — transcription pending |
-| 13 | Wrong claim on p. 31: PMVG's COVID Sortino (2.67) is *not* below every ABC algorithm (ABC-FA reports 2.10). | Confirmed by the canonical data — the repo's headline dominance claim deliberately **excludes ABC-FA (Bacanin)** for exactly this reason (see README "Canonical results" and `tests/reproduction_test.py::DOMINANT_FAMILY`). Suggested wording: "below the ABC original and the two proposed variants". | **Repo: supports** |
-| 15 | The document has no figures; add some, "dejarlos bonitos". | Source material ready: the Mermaid methodology diagram (README / methodology.md), the branded HTML reports in `docs/analysis/`, and the presentation visualizer in `thesis/`. Any table in the reports can be exported as a styled figure. | **Repo: supports** |
+---
 
-## Summary
+## Detailed answers
 
-- **10 of 15 comments** have their full analytical substance or source
-  material in this repository (3, 4, 5, 6, 9, 10, 11, 12, 14 done; 2, 7,
-  13, 15 supported).
-- **All remaining work is transcription/wording** in the Word document
-  (handled outside the repo), plus the two purely editorial items (1, 8).
-- The frozen canonical results were never touched: the checksum and golden
-  tests stayed green through every analysis added for these comments.
+### 1 — Abstract (docx only)
+
+The README [Overview](../README.md#overview) paragraph is a ready first
+draft in English (four ABC-family metaheuristics, NASDAQ-100, four
+volatility regimes, benchmarks, frozen results); it needs translation to
+Spanish and a results sentence (e.g., the family-dominance finding from
+comment 13's corrected wording).
+
+### 2 — Naming consistency
+
+Standardize on these names everywhere in the document (full mapping in
+[`docs/thesis/naming.md`](../docs/thesis/naming.md)):
+
+**ABC** (original, Karaboga 2005) · **ABC-FA** (Bacanin) · **ABC-FAEM**
+(proposed — never "ABC-FA-EM") · **ABC-GSA** (proposed) · **PMVG** ·
+**1/N**.
+
+### 3 — Where `b0` and `max_trials` are defined (parameter provenance)
+
+The missing section exists now
+([`docs/thesis/calibration.md`](../docs/thesis/calibration.md)). Essentials:
+
+| Parameter | Meaning |
+| --- | --- |
+| `numb_bees` | Colony size (evened up); one employed + one onlooker move per bee per iteration |
+| `max_itrs` | Iterations (employed → onlooker → scout cycles) |
+| `max_trials` | Stagnation threshold: a bee scouts when its unsuccessful-trial counter exceeds it; derived as `0.6 · numb_bees · n_assets` (= 300 at 25 bees × 20 assets) |
+| `b0` / `gamma` / `alpha` | Firefly attraction at distance zero / attraction decay `exp(−γr²)` / randomization amplitude |
+| `k_top`, `softmax_tau` | FAEM elite pool size (3) and softmax temperature (1.0) |
+| `p_fa` | PFA trigger — probability the FAEM scout uses the elite move vs. a random restart (1.0 in all thesis runs) |
+| `G`, `epsilon` | ABC-GSA gravitational constant and numeric guard |
+
+The values were **not hand-picked**: they come from the multi-regime robust
+calibration (per-regime grids → 5 synthetic stress scenarios each →
+worst-case-Sortino scoring → consensus across 3 historical seed periods).
+Calibrated values per regime (CRISIS / STABLE_GROWTH / UNCERTAINTY): e.g.,
+ABC-FAEM uses b0 = 1.4/0.95/1.25, γ = 1.4/1.4/1.2, α = 0.05, 25 bees, 60
+iterations; full table in the calibration doc.
+
+### 4 — Eq. 13 vs. Eq. 18
+
+**They are related but intentionally not identical, and they should not
+be.** Eq. 13 states the investor *preference* (Sortino, Omega, CVaR, HHI);
+Eq. 18 is its *executable scalarization* inside the metaheuristic:
+
+`U(w) = wᵀμ − λ·CVaR_α(Rw) − η·‖w‖₁ − λ_card·card(w)`, minimized as `−U(w)`.
+
+Sortino/Omega/HHI re-enter as *evaluation metrics* on the optimized
+portfolios (the results tables). Suggested thesis fix: state this
+relationship explicitly and cross-reference the two equations. Full
+term-by-term mapping:
+[`docs/thesis/objective_function.md`](../docs/thesis/objective_function.md).
+
+### 5 — The λ and η values
+
+As executed in every canonical run (frozen in code as
+`hive_abc.objectives.UtilityParams`):
+
+| Symbol | Meaning | Executed value |
+| --- | --- | --- |
+| λ | CVaR aversion | **0.7** |
+| α | CVaR tail parameter (riskfolio convention) | **0.99** |
+| η | L1 regularization | **5·10⁻⁴** (constant ≡ η for long-only normalized weights) |
+| λ_card | Cardinality penalty weight | **0.008 · n/20**, target 10 holdings, threshold 1% |
+
+### 6 — The z-score filters, exactly
+
+**Dynamic (market) filter**, recomputed ex-ante per backtest window:
+252-calendar-day window ending the day before the backtest start (≥ 180
+observations per ticker, relaxed once to 120); factors on daily log
+returns — momentum 12-1 (cumulative return excluding the last 21 rows),
+volatility (std), max drawdown; aggregation
+`0.5·z(momentum) + 0.3·z(−vol) + 0.2·z(−MDD)` (population z-scores);
+selection: rank descending, greedy diversification rejecting |ρ| ≥ 0.8
+against already-selected names, top-up ignoring correlation if fewer than
+20 survive; final n = 20.
+
+**Fixed (fundamentals) filter**: top-20 by `Z_Score` in the frozen
+fundamentals file, excluding the index row.
+
+(Also in [`docs/thesis/methodology.md`](../docs/thesis/methodology.md).)
+
+### 7 — CVaR vs. Expected Shortfall
+
+They are **the same measure**: Conditional Value-at-Risk ≡ Expected
+Shortfall ≡ Average VaR (Rockafellar & Uryasev, 2000). Suggested fix:
+state the equivalence once and use one term (the code standardizes on
+CVaR) consistently thereafter.
+
+### 9 — PFA sensitivity (the sensitive one)
+
+**Direct answer to the comment**: the value used in every thesis run is
+`p_fa = 1.0` (the FA elite move fires unconditionally), and the requested
+sweep over {0.3, 0.4, 0.5} leaves every reported metric **bit-identical**
+— e.g., Sortino by period (identical across all four p_fa values):
+
+| period | Sortino (any p_fa) |
+| --- | ---: |
+| covid_2020 | 3.955 |
+| gfc_2007_2009 | 0.399 |
+| war_2022 | 0.661 |
+| 2023_stability | 4.700 |
+
+**Why (and the defense against "then what is the parameter for?")**: the
+calibrated stagnation threshold (`max_trials = 300`) is never reached
+within the 60-iteration budget — mean scout activations per run:
+
+| max_trials → | 10 | 15 | 25 | 50–300 |
+| --- | ---: | ---: | ---: | ---: |
+| activations/run (avg across periods) | ~8.3 | ~2.1 | ~0.2 | 0 |
+
+So the PFA governs a *calibrated contingency* that the calibration itself
+(worst-case-Sortino criterion) deemed unnecessary for these horizons. When
+the mechanism IS forced active (diagnostic with `max_trials = 15`), the
+elite move shows directionally better mean fitness in 3 of 4 periods and
+equal-or-better convergence endpoints in 3 of 4 — but not statistically
+significant at 20 seeds. **Defensible claim**: "a mild, never-harmful
+guided-recovery mechanism whose calibrated configuration never needs it;
+therefore the final results are provably insensitive to PFA."
+Full evidence + oral-defense summary:
+[`docs/analysis/pfa_sensitivity.md`](../docs/analysis/pfa_sensitivity.md).
+
+### 10 — Wilcoxon p-values
+
+Computed for all 8 configurations (2 universes × 4 periods), pairwise over
+the 20 per-seed Sortino samples: **75% of all pairs are significant at
+5%**, and the significant pairs are exactly the ones our discourse needs
+(ABC-family vs. benchmarks); the ABC-FAEM vs. ABC-GSA pairs are generally
+not significant, consistent with the seed-noise interpretation. Full
+tables ready to transcribe:
+[`docs/analysis/reproduction_report.md`](../docs/analysis/reproduction_report.md)
+§ "Wilcoxon significance".
+
+### 11 — Number of assets per portfolio
+
+Holdings with weight > 0.5% per best portfolio (fixed universe shown;
+full table incl. dynamic in the reproduction report):
+
+| model | covid | gfc | war | 2023 |
+| --- | ---: | ---: | ---: | ---: |
+| ABC (original) | 7 | 6 | 10 | 9 |
+| ABC-FA (Bacanin) | 17 | 15 | 19 | 18 |
+| ABC-FAEM | 11 | 5 | 9 | 10 |
+| ABC-GSA | 9 | 4 | 9 | 10 |
+| PMVG | 6 | 5 | 7 | 14 |
+| 1/N | 20 | 16 | 20 | 20 |
+
+Reading: the ABC family (except Bacanin) concentrates in 4–11 names —
+the cardinality penalty at work — vs. 1/N's 20.
+
+### 12 — Best model with vs. without the filter
+
+| period — best model | with filter | without | advantage |
+| --- | ---: | ---: | ---: |
+| covid_2020 — ABC (original) | 4.822 | 2.475 | **+2.347** |
+| gfc_2007_2009 — ABC (original) | 0.439 | −0.131 | **+0.570** |
+| war_2022 — ABC-FAEM | 0.661 | 1.110 | −0.449 |
+| 2023_stability — ABC-GSA | 4.379 | 5.751 | −1.372 |
+
+(Sortino; "without" = top-20 by data coverage under the same
+liquidity/history screen.) **Suggested results-section mention**: the
+z-score filter behaves as a crisis-defense mechanism — it adds large
+value precisely in the systemic-crisis regimes and cedes ground in calm
+ones. Full annex tables:
+[`docs/analysis/filter_comparison.md`](../docs/analysis/filter_comparison.md).
+
+### 13 — The erroneous p. 31 claim
+
+Confirmed against the canonical data: PMVG's COVID Sortino (2.67) beats
+ABC-FA's (2.10), so "inferior to the ABC-based algorithms" is false as
+written. **Suggested corrected wording**: *"…es inferior al del ABC
+original y al de las dos variantes propuestas (ABC-FAEM y ABC-GSA),
+aunque supera al ABC-FA."* (The repo's formal dominance claim already
+excludes ABC-FA for exactly this reason.)
+
+### 14 — Execution times
+
+Mean seconds per optimizer run (one seed, averaged over the 8
+configurations): ABC (original) **0.076 s**, ABC-FA (Bacanin) **0.112 s**,
+ABC-FAEM **0.072 s**, ABC-GSA **0.070 s**; PMVG solves once in ~0.004 s
+and 1/N is instantaneous. A full 20-seed × 6-model × 8-configuration
+reproduction completes in ≈ 1 minute. Per-configuration breakdown in the
+reproduction report.
+
+### 15 — Figures for the document
+
+Ready-made sources, all consistent with the thesis numbers: the
+methodology flowchart (README / methodology.md, exportable as an image),
+the styled tables in the three HTML reports under `docs/analysis/`
+(brand-formatted, screenshot-ready), and the interactive visualizer
+already praised by the committee (`thesis/ABC_Thesis_Presentation.html`).
+
+---
+
+*Assignee note: comments 1–3, 6–8, 10–11, 13, 15 are Luisa's in the
+Excel; where their substance is parameter/results material, this repo
+provides it ready-made (3, 6, 10, 11, 13).*

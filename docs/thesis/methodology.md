@@ -25,6 +25,9 @@ objective: Eq. 18 scalarization ────► hive_abc.objectives
 optimizers (20 seeds each) ─────────► hive_abc.algorithms + benchmarks
   ABC / ABC-FA / ABC-FAEM / ABC-GSA / PMVG / 1/N
   calibrated per regime ─────────────► backtest/regime_parameters.json
+    (multi-regime robust calibration: synthetic scenarios, worst-case
+     Sortino, 3-seed-period consensus — see docs/thesis/calibration.md;
+     pipeline scripts preserved in legacy/)
         │
         ▼
 4 volatility regimes ───────────────► hive_abc.backtest.periods

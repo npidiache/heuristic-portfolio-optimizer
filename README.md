@@ -79,7 +79,7 @@ optimizers × 20 pinned seeds, calibrated per regime
 metrics + Wilcoxon              Sortino · max drawdown · Jensen α (^IXIC) · Omega · HHI
 ```
 
-The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (committee tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md).
+The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (committee tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).
 
 ## Canonical results
 

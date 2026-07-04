@@ -220,11 +220,22 @@ reproduction report.
 
 ### 15 — Figures for the document
 
-Ready-made sources, all consistent with the thesis numbers: the
-methodology flowchart (README / methodology.md, exportable as an image),
-the styled tables in the three HTML reports under `docs/analysis/`
-(brand-formatted, screenshot-ready), and the interactive visualizer
-already praised by the committee (`thesis/ABC_Thesis_Presentation.html`).
+**Six print-ready branded figures** (300 dpi PNG, Spanish labels, Obsidian
+Aqua palette) are committed under [`docs/figures/`](../docs/figures) —
+generated from the frozen data by `scripts/generate_thesis_figures.py`, so
+they cannot contradict the tables:
+
+| Figure | Content | Thesis placement |
+| --- | --- | --- |
+| `fig1_sortino_por_regimen` | Sortino by algorithm × regime (canonical, fixed universe) | Resultados — opening of the comparative analysis |
+| `fig2_riqueza_acumulada_por_regimen` | Cumulative wealth of the best portfolios, 4 regimes | Resultados — per-regime subsections |
+| `fig3_convergencia_abc` | Mean convergence of the 4 ABC variants (COVID) | Metodología — after the algorithm descriptions |
+| `fig4_riesgo_retorno` | Sortino vs. max drawdown scatter, all regimes | Resultados — cross-regime discussion |
+| `fig5_filtro_comparacion` | Best model with vs. without the z-score filter | Anexo (comentario 12) |
+| `fig6_pfa_activacion` | Scout activation frequency vs. `max_trials` | Anexo (comentario 9) |
+
+The Mermaid methodology flowchart (README) and the interactive visualizer
+(`thesis/ABC_Thesis_Presentation.html`) remain additional sources.
 
 ---
 

@@ -88,16 +88,18 @@ With `max_trials = 15` the scout fires regularly, and `p_fa` spans a clean ablat
 
 Mean best fitness across seeds at iteration checkpoints (lower is better):
 
-| period | policy         |   iter 5 |   iter 10 |   iter 20 |   iter 40 |   iter 60 |
-|:------------------------|---------:|----------:|----------:|----------:|----------:|
-| covid_2020 | p_fa=0     | 0.165249 |  0.113003 |  0.044713 | -0.000288 | -0.005403 |
-| covid_2020 | p_fa=1     | 0.165249 |  0.113003 |  0.043141 |  0.000215 | -0.005467 |
-| gfc_2007_2009 | p_fa=0  | 0.019079 |  0.010759 |  0.002547 |  0.001900 |  0.001538 |
-| gfc_2007_2009 | p_fa=1  | 0.019079 |  0.010759 |  0.002547 |  0.001902 |  0.001559 |
-| war_2022 | p_fa=0       | 0.166980 |  0.122502 |  0.063575 |  0.017409 |  0.002529 |
-| war_2022 | p_fa=1       | 0.166980 |  0.122502 |  0.063575 |  0.016152 |  0.001019 |
-| 2023_stability | p_fa=0 | 0.159236 |  0.123407 |  0.062741 |  0.008018 | -0.002162 |
-| 2023_stability | p_fa=1 | 0.159236 |  0.123407 |  0.062741 |  0.007581 | -0.002268 |
+| period         | policy   |   iter 5 |   iter 10 |   iter 20 |   iter 40 |   iter 60 |
+|:---------------|:---------|---------:|----------:|----------:|----------:|----------:|
+| covid_2020     | p_fa=0   | 0.165249 |  0.113003 |  0.044713 | -0.000288 | -0.005403 |
+| covid_2020     | p_fa=1   | 0.165249 |  0.113003 |  0.043141 |  0.000215 | -0.005467 |
+| gfc_2007_2009  | p_fa=0   | 0.019079 |  0.010759 |  0.002547 |  0.001900 |  0.001538 |
+| gfc_2007_2009  | p_fa=1   | 0.019079 |  0.010759 |  0.002547 |  0.001902 |  0.001559 |
+| war_2022       | p_fa=0   | 0.166980 |  0.122502 |  0.063575 |  0.017409 |  0.002529 |
+| war_2022       | p_fa=1   | 0.166980 |  0.122502 |  0.063575 |  0.016152 |  0.001019 |
+| 2023_stability | p_fa=0   | 0.159236 |  0.123407 |  0.062741 |  0.008018 | -0.002162 |
+| 2023_stability | p_fa=1   | 0.159236 |  0.123407 |  0.062741 |  0.007581 | -0.002268 |
+
+**Reading**: both policies are *identical* until the first scout activations (first divergence at iter 20) — mechanistic confirmation that the trigger only matters after stagnation accumulates — and the FAEM elite move finishes with equal-or-better mean best fitness in 3 of 4 periods at iter 60.
 
 ## 3. Defense summary (for the oral discussion)
 

@@ -278,9 +278,10 @@ def convergence_profile(seeds: int) -> pd.DataFrame:
     Mean best fitness at iteration checkpoints, stressed, p_fa 0 vs 1.
 
     Shows the anytime behavior of the two scout policies while the
-    mechanism is actually firing.
+    mechanism is actually firing. Returned long-format (`period` and
+    `policy` as plain columns) so markdown tables render cleanly.
     """
-    records = {}
+    rows = []
     for slug in PERIODS:
         objective, bounds, legacy = prepare_problem(slug)
         for p_fa in (0.0, 1.0):
@@ -293,15 +294,51 @@ def convergence_profile(seeds: int) -> pd.DataFrame:
                 outcome = algo.optimize(objective, bounds, seed=seed)
                 histories.append(outcome.best_per_iteration)
             mean_history = np.mean(np.array(histories), axis=0)
-            records[f"{slug} | p_fa={p_fa:.0f}"] = {
-                f"iter {c}": round(float(mean_history[c - 1]), 6)
-                for c in CONVERGENCE_CHECKPOINTS
-                if c <= len(mean_history)
-            }
+            row: dict[str, object] = {"period": slug, "policy": f"p_fa={p_fa:.0f}"}
+            row.update(
+                {
+                    f"iter {c}": round(float(mean_history[c - 1]), 6)
+                    for c in CONVERGENCE_CHECKPOINTS
+                    if c <= len(mean_history)
+                }
+            )
+            rows.append(row)
         print(f"   convergence {slug} done")
-    frame = pd.DataFrame.from_dict(records, orient="index")
-    frame.index.name = "period | policy"
-    return frame
+    return pd.DataFrame(rows)
+
+
+def convergence_takeaway(convergence: pd.DataFrame) -> str:
+    """
+    One-sentence interpretation of the convergence table, computed from it.
+
+    Args:
+        convergence: Long-format output of `convergence_profile`.
+
+    Returns:
+        A markdown paragraph stating where the trajectories split and how
+        many periods finish equal-or-better under the elite move.
+    """
+    checkpoint_columns = [c for c in convergence.columns if c.startswith("iter ")]
+    final_column = checkpoint_columns[-1]
+    wide = convergence.pivot(index="period", columns="policy", values=final_column)
+    better_or_equal = int((wide["p_fa=1"] <= wide["p_fa=0"]).sum())
+
+    # First checkpoint at which any period's two policies differ.
+    split_at = final_column
+    for column in checkpoint_columns:
+        by_policy = convergence.pivot(index="period", columns="policy", values=column)
+        if bool((by_policy["p_fa=1"] != by_policy["p_fa=0"]).any()):
+            split_at = column
+            break
+
+    return (
+        f"**Reading**: both policies are *identical* until the first scout "
+        f"activations (first divergence at {split_at}) — mechanistic "
+        f"confirmation that the trigger only matters after stagnation "
+        f"accumulates — and the FAEM elite move finishes with equal-or-"
+        f"better mean best fitness in {better_or_equal} of "
+        f"{wide.shape[0]} periods at {final_column}."
+    )
 
 
 def pivot(frame: pd.DataFrame, metric: str) -> pd.DataFrame:
@@ -423,7 +460,9 @@ def main() -> None:
         "",
         "Mean best fitness across seeds at iteration checkpoints (lower is better):",
         "",
-        convergence.to_markdown(floatfmt=".6f"),
+        convergence.to_markdown(index=False, floatfmt=".6f"),
+        "",
+        convergence_takeaway(convergence),
         "",
         "## 3. Defense summary (for the oral discussion)",
         "",
@@ -473,7 +512,7 @@ def main() -> None:
         ),
         (
             "Convergence profiles under stress",
-            frame_to_html(convergence, "{:.6f}"),
+            frame_to_html(convergence.set_index("period"), "{:.6f}"),
         ),
     ]
 

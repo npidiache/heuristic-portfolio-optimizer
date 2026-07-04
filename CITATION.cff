@@ -1,0 +1,57 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Heuristic portfolio optimizer (hive_abc)"
+abstract: >-
+  Artificial Bee Colony variants for portfolio selection over the NASDAQ-100
+  across four volatility regimes. Formalization of the Master in Finance
+  thesis "Optimización de portafolios mediante variantes del algoritmo
+  Artificial Bee Colony".
+type: software
+authors:
+  - family-names: Pidiache
+    given-names: Norbey
+version: 1.0.0
+date-released: "2026-07-04"
+license: MIT
+keywords:
+  - portfolio optimization
+  - artificial bee colony
+  - metaheuristics
+  - swarm intelligence
+  - quantitative finance
+references:
+  - type: report
+    title: "An idea based on honey bee swarm for numerical optimization"
+    authors:
+      - family-names: Karaboga
+        given-names: Dervis
+    year: 2005
+    institution:
+      name: "Erciyes University"
+    number: "TR-06"
+  - type: article
+    title: >-
+      Artificial bee colony algorithm hybridized with firefly algorithm for
+      cardinality constrained mean-variance portfolio selection
+    authors:
+      - family-names: Tuba
+        given-names: Milan
+      - family-names: Bacanin
+        given-names: Nebojsa
+    year: 2014
+    journal: "Applied Mathematics & Information Sciences"
+    volume: 8
+    issue: 6
+  - type: article
+    title: "GSA: A gravitational search algorithm"
+    authors:
+      - family-names: Rashedi
+        given-names: Esmat
+      - family-names: Nezamabadi-pour
+        given-names: Hossein
+      - family-names: Saryazdi
+        given-names: Saeid
+    year: 2009
+    journal: "Information Sciences"
+    volume: 179
+    issue: 13

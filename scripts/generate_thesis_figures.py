@@ -33,6 +33,7 @@ from hive_abc.backtest import (  # noqa: E402
     load_regime_parameters,
     run_backtest,
 )
+from hive_abc.backtest.engine import MODEL_SEED_OFFSETS  # noqa: E402
 from hive_abc.backtest.params import build_abc_model  # noqa: E402
 from hive_abc.core.types import Bounds  # noqa: E402
 from hive_abc.data import (  # noqa: E402
@@ -135,10 +136,7 @@ def fig_sortino_bars() -> None:
     ax.axhline(0, color="#1A1A2E", linewidth=0.8)
     ax.set_xticks(x, [PERIOD_LABELS[p] for p in PERIOD_ORDER])
     ax.set_ylabel("Ratio de Sortino")
-    ax.set_title(
-        "Ratio de Sortino por algoritmo y régimen de volatilidad "
-        "(universo fundamental, resultados de la tesis)"
-    )
+    ax.set_title("Ratio de Sortino por algoritmo y régimen de volatilidad")
     ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.12))
     save(fig, "fig1_sortino_por_regimen")
 
@@ -177,13 +175,13 @@ def fig_wealth_curves() -> None:
             )
         ax.axhline(1.0, color="#1A1A2E", linewidth=0.8, linestyle="--")
         ax.set_title(PERIOD_LABELS[slug])
-        ax.set_ylabel("Riqueza acumulada (base 1)")
+        ax.set_ylabel("Retorno acumulado (base 1)")
         ax.tick_params(axis="x", labelrotation=30)
         print(f"   wealth curves {slug} done")
     handles, labels = axes.flat[0].get_legend_handles_labels()
     fig.legend(handles, labels, ncol=5, loc="lower center")
     fig.suptitle(
-        "Evolución del mejor portafolio por régimen (universo fundamental)",
+        "Retorno acumulado del mejor portafolio por régimen",
         fontweight="bold",
         color="#1A1A2E",
     )
@@ -217,7 +215,8 @@ def fig_convergence() -> None:
         histories = []
         for seed in SEEDS:
             optimizer = build_abc_model(model, regime_params.get(model, {}), bounds.dim)
-            outcome = optimizer.optimize(objective, bounds, seed=seed * 1000)
+            run_seed = seed * 1000 + MODEL_SEED_OFFSETS[model]
+            outcome = optimizer.optimize(objective, bounds, seed=run_seed)
             histories.append(outcome.best_per_iteration)
         length = min(len(h) for h in histories)
         mean_history = np.mean([h[:length] for h in histories], axis=0)
@@ -231,9 +230,7 @@ def fig_convergence() -> None:
         print(f"   convergence {model} done")
     ax.set_xlabel("Iteración")
     ax.set_ylabel("Mejor aptitud (promedio de 20 semillas; menor es mejor)")
-    ax.set_title(
-        "Convergencia de las variantes ABC — régimen COVID-19, parámetros calibrados"
-    )
+    ax.set_title("Convergencia de las variantes ABC — régimen COVID-19")
     ax.legend()
     save(fig, "fig3_convergencia_abc")
 
@@ -262,10 +259,7 @@ def fig_risk_return() -> None:
             )
     ax.set_xlabel("Máximo drawdown (valor absoluto)")
     ax.set_ylabel("Ratio de Sortino")
-    ax.set_title(
-        "Riesgo vs. retorno ajustado por regímenes "
-        "(universo fundamental, resultados de la tesis)"
-    )
+    ax.set_title("Riesgo vs. retorno ajustado por régimen de volatilidad")
     model_handles = [
         Line2D(
             [],
@@ -346,7 +340,7 @@ def fig_filter_comparison() -> None:
         [f"{PERIOD_LABELS[s]}\n({MODEL_LABELS[m]})" for s, m in best.items()],
     )
     ax.set_ylabel("Ratio de Sortino")
-    ax.set_title("Mejor modelo con y sin el filtro z-score (anexo, comentario 12)")
+    ax.set_title("Mejor modelo con y sin el filtro z-score")
     ax.legend()
     save(fig, "fig5_filtro_comparacion")
 
@@ -381,9 +375,7 @@ def fig_pfa_activation() -> None:
     )
     ax.set_xlabel("max_trials (umbral de estancamiento)")
     ax.set_ylabel("Activaciones del scout por corrida (promedio)")
-    ax.set_title(
-        "Frecuencia de activación de la fase scout de ABC-FAEM (anexo, comentario 9)"
-    )
+    ax.set_title("Frecuencia de activación de la fase scout de ABC-FAEM")
     ax.legend()
     save(fig, "fig6_pfa_activacion")
 

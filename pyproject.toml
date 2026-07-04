@@ -10,7 +10,7 @@ license = { file = "LICENSE" }
 requires-python = "~=3.13.0"
 dependencies = [
     "cvxpy~=1.9.2",
-    "numpy~=2.5.1",
+    "numpy~=2.4.5",
     "pandas~=3.0.3",
     "scipy~=1.18.0",
 ]

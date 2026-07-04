@@ -1,5 +1,6 @@
 {
   "data/canonical/thesis_results_v1.json": "9270cde5bbc99485cfc98fc37012f58ce553876f23edb24902ae8c90b8996d45",
+  "data/frozen/benchmark_ixic_2007_2024.csv": "8658323939e1264ca446945cea1413360d31960aaa5d296fab99656e8b5401c2",
   "data/frozen/nasdaq_metadata.csv": "a3dd25e7e3e91980cd2a648c3840ffdc3b894171564d24ff9dc4493cc7eb0369",
   "data/frozen/nasdaq_prices_2000_2025.csv": "27cc03b621d55d9b2d496dcc0f1de160db1a92f8e5a824a86d9ac295090db6ef",
   "data/frozen/z_score.csv": "b6aeae0a9023a1402144b32b19bd344df31bd5d8d88058de77b1e1cb120f2a90"

@@ -139,7 +139,7 @@ local grid is one-sided: {0.80, 0.90, 0.95, 1.00}. Every reported metric is
 | war_2022 | 0.661 |
 | 2023_stability | 4.700 |
 
-The reviewer-suggested lower values {0.3, 0.4, 0.5} are still useful as a
+The extreme values {0.3, 0.4, 0.5} are still useful as a
 distant range check, but they should not be presented as the main robustness
 claim. They also leave every reported metric bit-identical for the same
 mechanical reason.

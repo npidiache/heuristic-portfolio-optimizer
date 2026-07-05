@@ -38,3 +38,8 @@ platform-dependent; statistical reproduction (Tier-2 bands) is the contract.
 probability that a stalled bee performs the firefly elite move instead of a
 random restart. The default `1.0` reproduces the frozen thesis behavior;
 see `docs/analysis/pfa_sensitivity.md` for the local sensitivity analysis.
+
+This does not mean the algorithm requires the calibrated stagnation
+threshold to work. ABC-FAEM preserves the original ABC dynamics before that
+threshold; after enough unsuccessful trials, if the scout phase activates,
+the variant adds a leader-following recovery move guided by elite solutions.

@@ -38,6 +38,8 @@ En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir, cuando una
 
 La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con la calibración final, max_trials = 300, y con un presupuesto de 60 iteraciones, esa fase no se activa en las corridas canónicas. Por tanto, modificar p_fa no cambia la trayectoria efectiva del algoritmo ni los resultados financieros reportados. Esta evidencia respalda mantener la configuración calibrada de la tesis.
 
+Esto no significa que el algoritmo "requiera 300 iteraciones para funcionar", sino que el mecanismo FAEM está diseñado como una intervención posterior al estancamiento. Antes de ese umbral, la dinámica dominante sigue siendo la de ABC. Después del umbral, si se activa la fase FAEM, el algoritmo incorpora una lógica de seguimiento de soluciones élite.
+
 ### Lower-value range check
 
 The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a distant range check, not as the main local sensitivity analysis. They are also bit-identical under the same calibrated configuration (verified: True):
@@ -54,6 +56,8 @@ The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a dis
 *Anticipated question: if `p_fa` changes nothing, what is the point of the parameter (and of the FAEM scout)?*
 
 **The inertness is a calibration outcome, not a design flaw.** The robust multi-regime calibration (see `docs/thesis/calibration.md`) selected `max_trials_factor = 0.6` under a worst-case-Sortino criterion — i.e., the data determined that in these portfolio problems, within a 60-iteration budget, sustained exploitation without restarts is optimal. The scout mechanism is the algorithm's *contingency* against stagnation, and the calibration set its activation threshold so high that the contingency was never needed in-sample. The exploratory grids did search the active region (`max_trials ∈ [8, 25]`) and the calibration rejected it. The evidence below characterizes the mechanism in both regions.
+
+Equivalently, ABC-FAEM does not need 300 iterations to "start working"; it works first as ABC, and only after the stagnation criterion is met does the FAEM recovery behavior become available. That is the point at which the method can behave like a leader-following mechanism, because the stalled bee is pulled toward a softmax-selected elite instead of being restarted randomly.
 
 ### 2a. When does the scout wake up? (activation frequency)
 

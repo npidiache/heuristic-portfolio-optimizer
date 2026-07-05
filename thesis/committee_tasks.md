@@ -186,6 +186,12 @@ Suggested thesis wording:
 > no cambia la trayectoria efectiva del algoritmo ni los resultados
 > reportados. Esta evidencia respalda mantener la configuración
 > calibrada de la tesis.
+>
+> Esto no significa que el algoritmo "requiera 300 iteraciones para
+> funcionar", sino que el mecanismo FAEM está diseñado como una intervención
+> posterior al estancamiento. Antes de ese umbral, la dinámica dominante
+> sigue siendo la de ABC. Después del umbral, si se activa la fase FAEM, el
+> algoritmo incorpora una lógica de seguimiento de soluciones élite.
 
 Optional future-work note:
 

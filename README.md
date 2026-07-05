@@ -47,7 +47,7 @@ The repository is built on four properties:
 | --- | --- | --- | --- |
 | `ABCOriginal` | ABC | — (baseline) | Karaboga (2005), TR-06 |
 | `ABCFABacanin` | ABC-FA | Firefly movement in the employed phase | Tuba & Bacanin (2014) — the original implementation of the hybridization is theirs |
-| `ABCFAEM` | **ABC-FAEM** (proposed) | Scout replaced by a firefly move toward a softmax-selected elite, gated by the `p_fa` trigger | this thesis |
+| `ABCFAEM` | **ABC-FAEM** (proposed) | Post-stagnation scout replaced by a firefly move toward a softmax-selected elite, gated by the `p_fa` trigger | this thesis |
 | `ABCGSA` | **ABC-GSA** (proposed) | Scout follows the swarm's net gravitational force | this thesis; gravity analogy after Rashedi et al. (2009) |
 | `ABCEpsilonScout` | (annex) | ε-greedy scout: random restart vs. best-guided move | this thesis (annex) |
 | `MinVarianceCVX` | PMVG | Convex global minimum variance (benchmark) | Markowitz (1952) |
@@ -131,7 +131,7 @@ Annex-ready material for the reviewers' comments (tracker: [`thesis/committee_ta
 | Task | Deliverable | Headline |
 | --- | --- | --- |
 | 4 + 5 | [`objective_function.md`](docs/thesis/objective_function.md) | Eq. 13 (preference) vs. Eq. 18 (executed scalarization); λ = 0.7, α = 0.99, η = 5·10⁻⁴, λ_card = 0.008·n/20 |
-| 9 | [`pfa_sensitivity.md`](docs/analysis/pfa_sensitivity.md) | Under calibrated parameters the PFA trigger never activates — results are provably identical for p_fa ∈ {0.3, 0.4, 0.5, 1.0} |
+| 9 | [`pfa_sensitivity.md`](docs/analysis/pfa_sensitivity.md) | FAEM is a post-stagnation intervention; under calibrated parameters the scout phase never activates, so results are provably identical for p_fa ∈ {0.3, 0.4, 0.5, 1.0} |
 | 12 | [`filter_comparison.md`](docs/analysis/filter_comparison.md) | The z-score filter is a crisis-defense mechanism: +2.35/+0.57 Sortino in COVID/GFC, −1.37/−0.45 in calm regimes |
 | 14 | [`reproduction_report.md`](docs/analysis/reproduction_report.md) | Execution-times table per model × configuration |
 

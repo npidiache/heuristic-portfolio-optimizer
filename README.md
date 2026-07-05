@@ -6,13 +6,13 @@
 
 **Artificial Bee Colony variants for portfolio selection — the formalization of a Master in Finance thesis, built to grow into a general metaheuristic optimizer.**
 
-![python](https://img.shields.io/badge/python-3.13-00e5ff?style=flat-square&labelColor=1a1a2e)
-![package](https://img.shields.io/badge/uv-managed-00e5ff?style=flat-square&labelColor=1a1a2e)
-![lint](https://img.shields.io/badge/ruff-clean-e2e8f0?style=flat-square&labelColor=1a1a2e)
-![types](https://img.shields.io/badge/mypy-strict-e2e8f0?style=flat-square&labelColor=1a1a2e)
-![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-00e5ff?style=flat-square&labelColor=1a1a2e)
-![thesis](https://img.shields.io/badge/thesis-v1.0_frozen-ff6b6b?style=flat-square&labelColor=1a1a2e)
-![license](https://img.shields.io/badge/license-MIT-64748b?style=flat-square&labelColor=1a1a2e)
+![python](https://img.shields.io/badge/python-3.13-00e5ff?style=flat&labelColor=1a1a2e)
+![package](https://img.shields.io/badge/uv-managed-00e5ff?style=flat&labelColor=1a1a2e)
+![lint](https://img.shields.io/badge/ruff-clean-e2e8f0?style=flat&labelColor=1a1a2e)
+![types](https://img.shields.io/badge/mypy-strict-e2e8f0?style=flat&labelColor=1a1a2e)
+![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-00e5ff?style=flat&labelColor=1a1a2e)
+![thesis](https://img.shields.io/badge/thesis-v1.0_frozen-ff6b6b?style=flat&labelColor=1a1a2e)
+![license](https://img.shields.io/badge/license-MIT-64748b?style=flat&labelColor=1a1a2e)
 
 </div>
 

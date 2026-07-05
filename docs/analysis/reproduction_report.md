@@ -11,7 +11,7 @@ Generated 2026-07-04 by `scripts/run_reproduction.py` (20 pinned seeds per stoch
 - Deterministic models (PMVG, 1/N) reproduce the thesis numbers almost exactly (differences ≤ 0.01 except Jensen alpha ≤ 0.06 from benchmark-data revisions).
 - Stochastic ABC variants land within seed-noise bands of the thesis values (worst Sortino gap ≈ 0.8 on ABC-FA Bacanin, the noisiest variant).
 - The thesis's headline ordinal claim holds in every configuration: ABC (original), ABC-FAEM, and ABC-GSA each beat both classical benchmarks on Sortino.
-- Under the calibrated parameters (`max_trials = 0.6 · bees · assets = 300`), the scout phase never fires within the iteration budget — per-model differences between the ABC variants in these tables reflect their distinct RNG streams rather than scout mechanics. See `docs/analysis/pfa_sensitivity.md` for the consequences.
+- Under the calibrated parameters (`max_trials = 0.6 · bees · assets = 300`), the scout phase never fires within the 60-iteration run — per-model differences between the ABC variants in these tables reflect their distinct RNG streams rather than scout mechanics. See `docs/analysis/pfa_sensitivity.md` for the consequences.
 
 ## dynamic universe — covid_2020
 

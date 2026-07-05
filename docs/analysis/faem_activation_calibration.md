@@ -2,7 +2,7 @@
 
 Generated 2026-07-04 by `scripts/run_faem_activation_calibration.py` (20 pinned seeds per configuration).
 
-This diagnostic keeps the thesis results frozen and changes only ABC-FAEM's scout activation threshold. Instead of the calibrated `max_trials = 0.6 × bees × assets = 300`, it tests thresholds tied to the 60-iteration budget: 15%, 25%, and 40%, i.e. `max_trials ∈ {9, 15, 24}`. The FAEM trigger remains `p_fa = 1.0`.
+This diagnostic keeps the thesis results frozen and changes only ABC-FAEM's scout activation threshold. Instead of the calibrated `max_trials = 0.6 × bees × assets = 300`, it tests thresholds tied to the 60-iteration horizon: 15%, 25%, and 40%, i.e. `max_trials ∈ {9, 15, 24}`. The FAEM trigger remains `p_fa = 1.0`.
 
 > [!IMPORTANT]
 > These runs are exploratory diagnostics, not replacement thesis results. They test whether the FAEM mechanism can become active under a minimal, interpretable recalibration.
@@ -64,4 +64,4 @@ This diagnostic keeps the thesis results frozen and changes only ABC-FAEM's scou
 
 The best active-scout threshold is `FAEM active mt=9` with mean Sortino 2.420, a +0.096 delta versus frozen ABC-FAEM and a +0.015 delta versus ABC original. This confirms the FAEM scout can be made operational with a proportional `max_trials` rule, but it does not provide a strong enough aggregate improvement over ABC original to replace the frozen thesis setting.
 
-The most defensible reading is that proportional `max_trials` removes the activation failure and makes the FAEM recovery mechanism visible. However, the active variants are still conditional: they can improve some regimes and weaken others because they replace ABC's random restart with leader-guided recovery. The evidence supports a future calibration line, not an ex-post replacement of the frozen thesis configuration.
+The most defensible reading is that proportional `max_trials` makes the FAEM phase reachable and therefore makes the recovery mechanism visible. However, the active variants are still conditional: they can improve some regimes and weaken others because they replace ABC's random restart with elite-guided recovery. The evidence supports a future calibration line, not an ex-post replacement of the frozen thesis configuration.

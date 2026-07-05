@@ -146,7 +146,7 @@ mechanical reason.
 
 **Why (and the defense against "then what is the parameter for?")**: the
 calibrated stagnation threshold (`max_trials = 300`) is never reached
-within the 60-iteration budget — mean scout activations per run:
+within 60 iterations — mean scout activations per run:
 
 | max_trials → | 10 | 15 | 25 | 50–300 |
 | --- | ---: | ---: | ---: | ---: |
@@ -167,7 +167,7 @@ Interpretation for likely reviewer concerns: FAEM activation is governed by
 search stagnation, not by market volatility alone. A volatile period can make
 the objective landscape harder, but the operational trigger is whether a bee
 accumulates enough unsuccessful trials. FAEM is therefore more likely to
-activate under lower `max_trials`, longer iteration budgets, flatter fitness
+activate under lower `max_trials`, longer runs, flatter fitness
 landscapes, highly correlated universes, or stronger constraints/penalties
 that make marginal improvement harder.
 
@@ -175,7 +175,7 @@ This also explains why ABC-FAEM can converge toward the original ABC in some
 tables but diverge in others. Before the scout phase, both methods share the
 same ABC dynamics. If the scout never fires, the FAEM difference is available
 but not executed. If it fires, original ABC restarts the stalled bee randomly,
-whereas ABC-FAEM pulls it toward a softmax-selected elite. That leader-guided
+whereas ABC-FAEM pulls it toward a softmax-selected elite. That elite-guided
 recovery can help when the elite region is informative, but it can also reduce
 diversity if the search still needs broader exploration. The expected effect
 is therefore conditional, not uniformly positive across regimes.
@@ -198,7 +198,7 @@ Suggested thesis wording:
 > En ambos casos las métricas permanecen idénticas.
 >
 > La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con la
-> calibración final, max_trials = 300, y con un total de 60 iteraciones,
+> calibración final, max_trials = 300, y con un horizonte de 60 iteraciones,
 > esa fase no se activa en las corridas canónicas. Por tanto, modificar p_fa
 > no cambia la trayectoria efectiva del algoritmo ni los resultados
 > reportados. Esta evidencia respalda mantener la configuración
@@ -212,7 +212,7 @@ Suggested thesis wording:
 >
 > La activación de FAEM depende del estancamiento de la búsqueda, no de la
 > volatilidad del periodo por sí sola. En escenarios con menor max_trials,
-> mayor presupuesto de iteraciones, alta correlación entre activos o un
+> mayor número de iteraciones, alta correlación entre activos o un
 > paisaje de optimización con pocas mejoras marginales, la fase scout puede
 > activarse con mayor frecuencia. En ese caso, ABC-FAEM puede diferir del
 > ABC original porque reemplaza el reinicio aleatorio por una recuperación
@@ -223,21 +223,22 @@ Suggested thesis wording:
 Optional future-work note:
 
 > Como línea exploratoria para trabajos futuros, podría estudiarse una
-> sensibilidad conjunta entre max_trials y p_fa, o bien niveles de
-> iteración más altos, para determinar cuándo conviene activar mecanismos
+> sensibilidad conjunta entre max_trials y p_fa, o bien horizontes de
+> ejecución más largos, para determinar cuándo conviene activar mecanismos
 > de recuperación guiados por élites. Ese análisis ampliaría el entendimiento
 > del balance exploración-explotación de ABC-FAEM, pero no modifica las
 > conclusiones de la configuración calibrada usada en esta tesis.
 
-Follow-up diagnostic executed:
+Diagnóstico complementario:
 [`docs/analysis/faem_activation_calibration.md`](../docs/analysis/faem_activation_calibration.md)
-tests a proportional activation rule with `max_trials ∈ {9, 15, 24}` while
-keeping `p_fa = 1.0` and all other calibrated parameters unchanged. The best
-active setting (`max_trials = 9`) improves mean Sortino versus frozen
-ABC-FAEM (2.420 vs. 2.324) and is marginally above ABC original (2.420 vs.
-2.405), but the gain is small and uneven across periods. It supports the
-mechanism as a future calibration line, not an ex-post replacement of the
-frozen thesis configuration.
+evalúa una regla proporcional de activación con `max_trials ∈ {9, 15, 24}`,
+manteniendo `p_fa = 1.0` y los demás parámetros calibrados sin cambios. La
+mejor variante activa (`max_trials = 9`) mejora el Sortino promedio frente al
+ABC-FAEM congelado (2.420 vs. 2.324) y queda marginalmente por encima del ABC
+original (2.420 vs. 2.405), pero la ganancia es pequeña y desigual entre
+periodos. Este resultado respalda el mecanismo como línea futura de
+calibración, no como reemplazo ex post de la configuración congelada de la
+tesis.
 
 Full evidence + oral-defense summary:
 [`docs/analysis/pfa_sensitivity.md`](../docs/analysis/pfa_sensitivity.md).

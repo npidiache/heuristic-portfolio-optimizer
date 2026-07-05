@@ -229,6 +229,16 @@ Optional future-work note:
 > del balance exploración-explotación de ABC-FAEM, pero no modifica las
 > conclusiones de la configuración calibrada usada en esta tesis.
 
+Follow-up diagnostic executed:
+[`docs/analysis/faem_activation_calibration.md`](../docs/analysis/faem_activation_calibration.md)
+tests a proportional activation rule with `max_trials ∈ {9, 15, 24}` while
+keeping `p_fa = 1.0` and all other calibrated parameters unchanged. The best
+active setting (`max_trials = 9`) improves mean Sortino versus frozen
+ABC-FAEM (2.420 vs. 2.324) and is marginally above ABC original (2.420 vs.
+2.405), but the gain is small and uneven across periods. It supports the
+mechanism as a future calibration line, not an ex-post replacement of the
+frozen thesis configuration.
+
 Full evidence + oral-defense summary:
 [`docs/analysis/pfa_sensitivity.md`](../docs/analysis/pfa_sensitivity.md).
 

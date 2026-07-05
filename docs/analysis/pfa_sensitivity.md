@@ -151,3 +151,5 @@ Use these sources to position the answer: ABC establishes why the scout phase is
 ## 5. Exploratory future work note
 
 Como línea exploratoria para trabajos futuros, podría estudiarse una sensibilidad conjunta entre max_trials y p_fa, o bien presupuestos de iteración más largos, para caracterizar cuándo conviene activar mecanismos de recuperación guiados por élites. Ese análisis ampliaría el entendimiento del balance exploración-explotación de ABC-FAEM, pero no modifica las conclusiones de la configuración calibrada usada en esta tesis.
+
+An additional active-scout diagnostic was executed in [`faem_activation_calibration.md`](faem_activation_calibration.md): replacing the unreachable `max_trials = 300` rule with thresholds proportional to the 60-iteration budget (`max_trials ∈ {9, 15, 24}`) makes FAEM operational. The best active setting (`max_trials = 9`) raises mean Sortino from 2.324 to 2.420 versus frozen ABC-FAEM and slightly exceeds ABC original by +0.015 on average, but the improvement is too small and uneven across periods to justify replacing the calibrated thesis configuration.

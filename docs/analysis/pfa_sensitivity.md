@@ -59,6 +59,12 @@ The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a dis
 
 Equivalently, ABC-FAEM does not need 300 iterations to "start working"; it works first as ABC, and only after the stagnation criterion is met does the FAEM recovery behavior become available. That is the point at which the method can behave like a leader-following mechanism, because the stalled bee is pulled toward a softmax-selected elite instead of being restarted randomly.
 
+### When can FAEM become active?
+
+La activación de FAEM depende del estancamiento de la búsqueda, no de la volatilidad del periodo por sí sola. Un régimen muy volátil puede aumentar la dificultad del paisaje de optimización, pero el disparador operativo es que una abeja acumule suficientes intentos fallidos sin mejorar. Por tanto, FAEM es más probable cuando el umbral `max_trials` es menor, cuando el presupuesto de iteraciones es mayor, o cuando el problema presenta mesetas de fitness, alta correlación entre activos, restricciones fuertes o penalizaciones que dificultan encontrar mejoras marginales.
+
+Esta distinción ayuda a interpretar los resultados: ABC-FAEM puede converger hacia resultados similares al ABC original porque ambos comparten la misma dinámica base antes de la fase scout. Cuando la fase scout no se activa, la diferencia mecánica entre ambos queda disponible pero no ejecutada. Cuando sí se activa, ABC original responde al estancamiento con un reinicio aleatorio, mientras que ABC-FAEM intenta una recuperación guiada hacia soluciones élite. Esa recuperación puede mejorar la explotación si la élite es informativa, pero también puede reducir diversidad si la búsqueda todavía necesita explorar regiones nuevas; por eso los resultados pueden coincidir en algunos regímenes y discrepar en otros.
+
 ### 2a. When does the scout wake up? (activation frequency)
 
 Mean scout activations per run (calibrated FAEM parameters, only `max_trials` varies; the calibrated value is 300):

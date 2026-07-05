@@ -163,6 +163,23 @@ therefore the final results are locally insensitive to PFA around the
 executed value, while active-mechanism diagnostics show how it behaves when
 the scout phase is forced on."
 
+Interpretation for likely reviewer concerns: FAEM activation is governed by
+search stagnation, not by market volatility alone. A volatile period can make
+the objective landscape harder, but the operational trigger is whether a bee
+accumulates enough unsuccessful trials. FAEM is therefore more likely to
+activate under lower `max_trials`, longer iteration budgets, flatter fitness
+landscapes, highly correlated universes, or stronger constraints/penalties
+that make marginal improvement harder.
+
+This also explains why ABC-FAEM can converge toward the original ABC in some
+tables but diverge in others. Before the scout phase, both methods share the
+same ABC dynamics. If the scout never fires, the FAEM difference is available
+but not executed. If it fires, original ABC restarts the stalled bee randomly,
+whereas ABC-FAEM pulls it toward a softmax-selected elite. That leader-guided
+recovery can help when the elite region is informative, but it can also reduce
+diversity if the search still needs broader exploration. The expected effect
+is therefore conditional, not uniformly positive across regimes.
+
 References to cite in the written answer: Karaboga (2005) and Karaboga &
 Basturk (2007) for ABC/scout mechanics; Yang (2009) for Firefly movement;
 Tuba & Bacanin (2014) for ABC-FA in cardinality-constrained portfolio
@@ -192,6 +209,16 @@ Suggested thesis wording:
 > posterior al estancamiento. Antes de ese umbral, la dinámica dominante
 > sigue siendo la de ABC. Después del umbral, si se activa la fase FAEM, el
 > algoritmo incorpora una lógica de seguimiento de soluciones élite.
+>
+> La activación de FAEM depende del estancamiento de la búsqueda, no de la
+> volatilidad del periodo por sí sola. En escenarios con menor max_trials,
+> mayor presupuesto de iteraciones, alta correlación entre activos o un
+> paisaje de optimización con pocas mejoras marginales, la fase scout puede
+> activarse con mayor frecuencia. En ese caso, ABC-FAEM puede diferir del
+> ABC original porque reemplaza el reinicio aleatorio por una recuperación
+> guiada por élites. Este mecanismo puede mejorar la explotación cuando las
+> élites son informativas, pero también puede reducir diversidad si el
+> problema aún requiere mayor exploración.
 
 Optional future-work note:
 

@@ -104,7 +104,7 @@ def test_scout_phase_replaces_only_the_most_stalled_bee(
     original_vector = state.population[0].vector.copy()
 
     algo = BeeHive(colony_size=2, max_iterations=1)
-    algo._scout_phase(state, max_trials=5)
+    algo._scout_phase(state, max_trials=5, iteration=0)
 
     assert np.array_equal(state.population[0].vector, original_vector)
     assert state.population[1].counter == 0
@@ -118,7 +118,7 @@ def test_scout_phase_ignores_bees_below_threshold(
     vector_before = state.population[1].vector.copy()
 
     algo = BeeHive(colony_size=2, max_iterations=1)
-    algo._scout_phase(state, max_trials=5)  # strictly-greater trigger
+    algo._scout_phase(state, max_trials=5, iteration=0)  # strictly-greater
 
     assert np.array_equal(state.population[1].vector, vector_before)
 

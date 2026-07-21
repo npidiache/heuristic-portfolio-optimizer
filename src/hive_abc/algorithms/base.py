@@ -200,8 +200,8 @@ class BeeHive(HeuristicOptimizer):
             for index in range(self._size):
                 self._employed_step(state, index)
             self._onlooker_phase(state)
-            if self._scout_phase(state, max_trials):
-                scout_iterations.append(iteration)
+            relocated = self._scout_phase(state, max_trials, iteration)
+            scout_iterations.extend([iteration] * relocated)
             self._update_best(state)
             best_history.append(state.best_value)
             mean_history.append(sum(bee.value for bee in state.population) / self._size)
@@ -290,21 +290,28 @@ class BeeHive(HeuristicOptimizer):
             beta %= max_proba
             self._employed_step(state, self._roulette_select(state, beta))
 
-    def _scout_phase(self, state: _ColonyState, max_trials: int) -> bool:
+    def _scout_phase(self, state: _ColonyState, max_trials: int, iteration: int) -> int:
         """
         Sends the single most-stalled bee to scout when it exceeds the cap.
 
+        Args:
+            state: The run's colony state.
+            max_trials: Stagnation cap; a bee scouts when strictly above it.
+            iteration: Current iteration index; unused by the v1 semantics
+                but part of the hook so adaptive triggers can rate-limit.
+
         Returns:
-            True when a scout replacement fired, so `optimize` can record the
-            activation without altering the trigger semantics.
+            Number of bees replaced by scouts — 0 or 1 under the v1
+            single-scout semantics — so `optimize` can record one activation
+            per relocated bee without altering the trigger semantics.
         """
         trials = [bee.counter for bee in state.population]
         index = trials.index(max(trials))
         if trials[index] > max_trials:
             self._scout_move(state, index)
             state.population[index].counter = 0
-            return True
-        return False
+            return 1
+        return 0
 
     def _cumulative_probabilities(self, state: _ColonyState) -> NDArray[np.float64]:
         """Builds the cumulative fitness-proportional roulette table."""

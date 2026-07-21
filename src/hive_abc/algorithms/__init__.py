@@ -12,6 +12,7 @@
 # --------------------------------------------------------------------------------------
 # Libraries
 # --------------------------------------------------------------------------------------
+from hive_abc.algorithms.abc_adaptive import ABCAdaptiveScout
 from hive_abc.algorithms.abc_epsilon import ABCEpsilonScout
 from hive_abc.algorithms.abc_fa_bacanin import ABCFABacanin
 from hive_abc.algorithms.abc_faem import ABCFAEM
@@ -20,6 +21,7 @@ from hive_abc.algorithms.abc_original import ABCOriginal
 from hive_abc.algorithms.base import BeeHive
 
 __all__ = [
+    "ABCAdaptiveScout",
     "ABCEpsilonScout",
     "ABCFABacanin",
     "ABCFAEM",

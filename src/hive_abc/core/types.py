@@ -89,6 +89,11 @@ class OptimizationResult:
         n_evaluations: Total objective-function evaluations performed.
         runtime_seconds: Wall-clock duration of the run (reviewer task 14).
         seed: Seed the run was started with, if any.
+        scout_activations: Times the ABC scout phase fired during the run.
+            Always 0 for optimizers without a scout phase.
+        scout_activation_iterations: Iteration indices (0-based) at which the
+            scout phase fired. Always empty for optimizers without a scout
+            phase.
     """
 
     best_vector: NDArray[np.float64]
@@ -98,3 +103,5 @@ class OptimizationResult:
     n_evaluations: int
     runtime_seconds: float
     seed: int | None
+    scout_activations: int = 0
+    scout_activation_iterations: tuple[int, ...] = ()

@@ -176,7 +176,8 @@ class BeeHive(HeuristicOptimizer):
             seed: Seed for `numpy.random.default_rng`.
 
         Returns:
-            Best solution found with per-iteration convergence history.
+            Best solution found with per-iteration convergence history and
+            scout-phase activation telemetry.
         """
         start = time.perf_counter()
         state = _ColonyState(
@@ -194,11 +195,13 @@ class BeeHive(HeuristicOptimizer):
 
         best_history: list[float] = []
         mean_history: list[float] = []
-        for _ in range(self._max_iterations):
+        scout_iterations: list[int] = []
+        for iteration in range(self._max_iterations):
             for index in range(self._size):
                 self._employed_step(state, index)
             self._onlooker_phase(state)
-            self._scout_phase(state, max_trials)
+            if self._scout_phase(state, max_trials):
+                scout_iterations.append(iteration)
             self._update_best(state)
             best_history.append(state.best_value)
             mean_history.append(sum(bee.value for bee in state.population) / self._size)
@@ -211,6 +214,8 @@ class BeeHive(HeuristicOptimizer):
             n_evaluations=state.n_evaluations,
             runtime_seconds=time.perf_counter() - start,
             seed=seed,
+            scout_activations=len(scout_iterations),
+            scout_activation_iterations=tuple(scout_iterations),
         )
 
     # -- variant hooks -----------------------------------------------------------
@@ -285,13 +290,21 @@ class BeeHive(HeuristicOptimizer):
             beta %= max_proba
             self._employed_step(state, self._roulette_select(state, beta))
 
-    def _scout_phase(self, state: _ColonyState, max_trials: int) -> None:
-        """Sends the single most-stalled bee to scout when it exceeds the cap."""
+    def _scout_phase(self, state: _ColonyState, max_trials: int) -> bool:
+        """
+        Sends the single most-stalled bee to scout when it exceeds the cap.
+
+        Returns:
+            True when a scout replacement fired, so `optimize` can record the
+            activation without altering the trigger semantics.
+        """
         trials = [bee.counter for bee in state.population]
         index = trials.index(max(trials))
         if trials[index] > max_trials:
             self._scout_move(state, index)
             state.population[index].counter = 0
+            return True
+        return False
 
     def _cumulative_probabilities(self, state: _ColonyState) -> NDArray[np.float64]:
         """Builds the cumulative fitness-proportional roulette table."""

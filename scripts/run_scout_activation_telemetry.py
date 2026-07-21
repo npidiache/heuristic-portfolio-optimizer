@@ -10,8 +10,10 @@ with paired seeds and Wilcoxon tests against ABC original.
 
 Runs optimizers directly against `PortfolioUtilityObjective` (the
 `ABCEpsilonScout` precedent) — the backtest engine and its default model
-registry are untouched. Writes `docs/analysis/scout_activation_telemetry.md`
-and `.html`.
+registry are untouched. A formal hypothesis-test section applies
+Holm-Bonferroni correction and the deflated Sharpe ratio (the SG-3
+statistics, commit d87db66) to the winning configuration. Writes
+`docs/analysis/scout_activation_telemetry.md` and `.html`.
 """
 
 # --------------------------------------------------------------------------------------
@@ -32,6 +34,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from numpy.typing import NDArray  # noqa: E402
+from scipy.stats import kurtosis, skew  # noqa: E402
 
 from hive_abc.algorithms import ABCAdaptiveScout  # noqa: E402
 from hive_abc.algorithms.scouting import (  # noqa: E402
@@ -58,7 +61,11 @@ from hive_abc.data.universe import (  # noqa: E402
     select_universe_dynamic_zscore,
 )
 from hive_abc.metrics.performance import sortino_ratio  # noqa: E402
-from hive_abc.metrics.stats import wilcoxon_sortino_matrix  # noqa: E402
+from hive_abc.metrics.stats import (  # noqa: E402
+    deflated_sharpe_ratio,
+    holm_bonferroni,
+    wilcoxon_sortino_matrix,
+)
 from hive_abc.objectives.utility import PortfolioUtilityObjective  # noqa: E402
 from hive_abc.reporting.html import frame_to_html, notice, render_report  # noqa: E402
 
@@ -73,6 +80,8 @@ ACTIVE_BAR = "ABC-FAEM active mt=9"
 OptimizerFactory = Callable[
     [Mapping[str, Mapping[str, float]], int], HeuristicOptimizer
 ]
+CellKey = tuple[str, str]
+ModelKey = tuple[str, str, str]
 
 
 # --------------------------------------------------------------------------------------
@@ -89,6 +98,15 @@ class RunRecord:
     fitness: float
     sortino: float
     activations: int
+
+
+@dataclass(frozen=True)
+class GridArtifacts:
+    """Run records plus the per-cell arrays the formal hypothesis test needs."""
+
+    records: list[RunRecord]
+    cell_returns: dict[CellKey, NDArray[np.float64]]
+    best_weights: dict[ModelKey, NDArray[np.float64]]
 
 
 # --------------------------------------------------------------------------------------
@@ -166,7 +184,7 @@ def universe_tickers(universe: str, start_date: str) -> list[str]:
     return select_universe_dynamic_zscore(start_date, prices_file=FROZEN_PRICES)
 
 
-def run_grid(seeds: int) -> list[RunRecord]:
+def run_grid(seeds: int) -> GridArtifacts:
     """
     Runs every configuration over every universe and thesis period.
 
@@ -179,9 +197,14 @@ def run_grid(seeds: int) -> list[RunRecord]:
         seeds: Number of pinned seeds per configuration.
 
     Returns:
-        One record per (universe, period, model, seed) run.
+        One record per (universe, period, model, seed) run, plus each cell's
+        asset-return matrix and each configuration's best-of-seeds weights
+        (normalized), which the formal hypothesis test consumes.
     """
     records: list[RunRecord] = []
+    cell_returns: dict[CellKey, NDArray[np.float64]] = {}
+    best_weights: dict[ModelKey, NDArray[np.float64]] = {}
+    best_fitness: dict[ModelKey, float] = {}
     for universe in UNIVERSES:
         for period_slug, period in PERIODS.items():
             tickers = universe_tickers(universe, period.start_date)
@@ -194,6 +217,7 @@ def run_grid(seeds: int) -> list[RunRecord]:
             objective = PortfolioUtilityObjective(log_returns.to_numpy(), mu.to_numpy())
             bounds = Bounds.box(n_assets)
             asset_returns = prices.ffill().pct_change().dropna().to_numpy(dtype=float)
+            cell_returns[(universe, period_slug)] = asset_returns
             regime_params = load_regime_parameters(period.regime)
 
             for label, factory in configurations():
@@ -211,8 +235,15 @@ def run_grid(seeds: int) -> list[RunRecord]:
                             activations=outcome.scout_activations,
                         )
                     )
+                    key = (universe, period_slug, label)
+                    if outcome.best_value < best_fitness.get(key, float("inf")):
+                        best_fitness[key] = outcome.best_value
+                        vector = outcome.best_vector
+                        best_weights[key] = vector / float(np.sum(vector))
                 print(f"   {universe} / {period_slug} / {label} done", flush=True)
-    return records
+    return GridArtifacts(
+        records=records, cell_returns=cell_returns, best_weights=best_weights
+    )
 
 
 def seed_sortino(
@@ -328,6 +359,146 @@ def as_float(value: object) -> float:
     return float(cast(SupportsFloat, value))
 
 
+def best_adaptive_label(summary: pd.DataFrame) -> str:
+    """
+    Name of the adaptive configuration with the highest mean Sortino.
+
+    Args:
+        summary: Aggregate model summary from `sortino_summary`.
+
+    Returns:
+        The winning adaptive configuration's label.
+    """
+    adaptive_index = [i for i in summary.index if str(i).startswith("Adaptive")]
+    ranked = summary.loc[adaptive_index].sort_values("sortino", ascending=False)
+    return str(ranked.index[0])
+
+
+def holm_by_cell(tests: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applies Holm-Bonferroni within each universe-period cell.
+
+    The family of simultaneous comparisons is the six non-baseline
+    configurations tested against ABC original inside one cell. NaN
+    p-values (identical samples) count as 1.0 before correction, matching
+    `hive_abc.calibration.selection`'s convention.
+
+    Args:
+        tests: Wilcoxon-vs-baseline table from `wilcoxon_vs_baseline`.
+
+    Returns:
+        The same table with a `holm_significant` column appended.
+    """
+    frames: list[pd.DataFrame] = []
+    for _, sliced in tests.groupby(["universe", "period"], sort=False):
+        p_values: dict[str, float] = {}
+        for _, row in sliced.iterrows():
+            raw = as_float(row["p_value"]) if row["p_value"] == row["p_value"] else 1.0
+            p_values[str(row["model"])] = raw
+        rejected = holm_bonferroni(p_values, alpha=0.05)
+        cell = sliced.copy()
+        cell["holm_significant"] = cell["model"].map(rejected)
+        frames.append(cell)
+    return pd.concat(frames, ignore_index=True)
+
+
+def winner_cell_report(
+    artifacts: GridArtifacts, holm: pd.DataFrame, winner: str
+) -> pd.DataFrame:
+    """
+    Per-cell formal statistics for the winning configuration.
+
+    For every universe-period cell: the winner's Holm-corrected Wilcoxon
+    outcome plus the deflated Sharpe ratio of its best-of-seeds portfolio.
+    The DSR deflates the winner's daily-return Sharpe against the trial set
+    of all seven configurations' best portfolios in that cell (Bailey &
+    López de Prado, 2014); skewness and excess kurtosis come from the
+    winner's daily returns and `n_obs` is the window length.
+
+    Args:
+        artifacts: Grid outputs with per-cell returns and best weights.
+        holm: Output of `holm_by_cell`.
+        winner: Configuration label under test.
+
+    Returns:
+        One row per cell with p-value, Holm flag, direction, Sharpe, DSR.
+    """
+    labels = [label for label, _ in configurations()]
+    p_by_cell: dict[CellKey, float] = {}
+    holm_flag_by_cell: dict[CellKey, bool] = {}
+    favor_by_cell: dict[CellKey, bool] = {}
+    for _, row in holm[holm["model"] == winner].iterrows():
+        cell_key = (str(row["universe"]), str(row["period"]))
+        p_by_cell[cell_key] = as_float(row["p_value"])
+        holm_flag_by_cell[cell_key] = bool(row["holm_significant"])
+        favor_by_cell[cell_key] = str(row["winner"]) == winner
+    rows: list[dict[str, object]] = []
+    for cell, asset_returns in artifacts.cell_returns.items():
+        universe, period = cell
+        trial_srs = []
+        for label in labels:
+            weights = artifacts.best_weights[(universe, period, label)]
+            returns = asset_returns @ weights
+            trial_srs.append(float(np.mean(returns) / np.std(returns, ddof=1)))
+        winner_returns = (
+            asset_returns @ artifacts.best_weights[(universe, period, winner)]
+        )
+        observed = float(np.mean(winner_returns) / np.std(winner_returns, ddof=1))
+        dsr = deflated_sharpe_ratio(
+            observed,
+            trial_srs,
+            n_obs=len(winner_returns),
+            skew=float(skew(winner_returns)),
+            excess_kurtosis=float(kurtosis(winner_returns, fisher=True)),
+        )
+        rows.append(
+            {
+                "universe": universe,
+                "period": period,
+                "p_value": p_by_cell[cell],
+                "holm_significant": holm_flag_by_cell[cell],
+                "in_favor": favor_by_cell[cell],
+                "daily_sharpe": observed,
+                "deflated_sharpe": dsr,
+                "n_obs": len(winner_returns),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def formal_verdict(report: pd.DataFrame, winner: str) -> str:
+    """
+    States the hypothesis-test outcome from the winner's per-cell report.
+
+    Args:
+        report: Output of `winner_cell_report`.
+        winner: Configuration label under test.
+
+    Returns:
+        Verdict paragraph with the computed Holm and DSR counts.
+    """
+    n_cells = len(report)
+    n_holm = int((report["holm_significant"] & report["in_favor"]).sum())
+    n_dsr = int((report["deflated_sharpe"] >= 0.95).sum())
+    min_dsr = as_float(report["deflated_sharpe"].min())
+    if n_holm == n_cells and n_dsr == n_cells:
+        outcome = "SURVIVES formal control in this diagnostic"
+    else:
+        outcome = "survives only partially — see the per-cell table"
+    return (
+        f"Hypothesis — replacing the dormant scout with `{winner}` improves "
+        f"on ABC original. Result — after Holm correction within each cell "
+        f"(six simultaneous comparisons), the improvement stays significant "
+        f"and in the winner's favor in {n_holm} of {n_cells} cells; the "
+        f"per-cell deflated Sharpe is at least 0.95 in {n_dsr} of {n_cells} "
+        f"cells (minimum {min_dsr:.3f}). The hypothesis therefore {outcome}. "
+        "Scope caveats: windows are evaluated in-sample under the thesis "
+        "conventions, and the deflation covers the seven configurations "
+        "tested here rather than the full design space — the SG-5 "
+        "walk-forward study remains the confirmatory step."
+    )
+
+
 def verdict(summary: pd.DataFrame, tests: pd.DataFrame) -> str:
     """
     Computes the diagnostic's bottom line from the aggregated results.
@@ -340,10 +511,7 @@ def verdict(summary: pd.DataFrame, tests: pd.DataFrame) -> str:
         Interpretation paragraph with the computed deltas and significance
         counts.
     """
-    adaptive_index = [i for i in summary.index if str(i).startswith("Adaptive")]
-    best_label = str(
-        summary.loc[adaptive_index].sort_values("sortino", ascending=False).index[0]
-    )
+    best_label = best_adaptive_label(summary)
     best = as_float(summary.loc[best_label, "sortino"])
     abc = as_float(summary.loc[BASELINE, "sortino"])
     bar = as_float(summary.loc[ACTIVE_BAR, "sortino"])
@@ -358,28 +526,43 @@ def verdict(summary: pd.DataFrame, tests: pd.DataFrame) -> str:
         f"{best - abc:+.3f} versus ABC original and {best - bar:+.3f} versus "
         f"the prior diagnostic's best (`{ACTIVE_BAR}`). Of its 8 paired "
         f"Wilcoxon tests against ABC original, {n_sig} are significant at "
-        f"5% ({n_sig_wins} in its favor). Under the uncalibrated default "
-        "policies this is a directional, not yet conclusive, result — the "
-        "calibrated study (plan SG-3/SG-4/SG-5) owns the final claim with "
-        "Holm-corrected significance and deflated-Sharpe selection."
+        f"5% ({n_sig_wins} in its favor). §4 applies the formal "
+        "Holm/deflated-Sharpe control to this grid; the SG-5 walk-forward "
+        "study owns the confirmatory claim under calibrated policies."
     )
 
 
-def write_report(frame: pd.DataFrame, seeds: int) -> None:
+def write_report(artifacts: GridArtifacts, seeds: int) -> None:
     """
     Writes the markdown and HTML diagnostic report.
 
     Args:
-        frame: Long-format run records.
+        artifacts: Grid outputs (records plus formal-test arrays).
         seeds: Pinned seeds per configuration.
     """
     today = date.today().isoformat()
+    frame = pd.DataFrame([record.__dict__ for record in artifacts.records])
     activations = activation_table(frame)
     summary = sortino_summary(frame)
     fixed = sortino_by_period(frame, "fixed")
     dynamic = sortino_by_period(frame, "dynamic")
     tests = wilcoxon_vs_baseline(frame)
+    holm = holm_by_cell(tests)
+    winner = best_adaptive_label(summary)
+    formal = winner_cell_report(artifacts, holm, winner)
+    formal_text = formal_verdict(formal, winner)
     bottom_line = verdict(summary, tests)
+
+    holm_work = holm.copy()
+    holm_work["holm_in_favor"] = holm_work["holm_significant"] & (
+        holm_work["winner"] == holm_work["model"]
+    )
+    holm_work["holm_against"] = holm_work["holm_significant"] & (
+        holm_work["winner"] != holm_work["model"]
+    )
+    holm_summary = holm_work.groupby("model", sort=False)[
+        ["holm_in_favor", "holm_against"]
+    ].sum()
 
     md = [
         "# Scout-activation telemetry diagnostic (reviewer task 9 follow-up)",
@@ -409,6 +592,10 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         "typical inter-bee distances, i.e. the elite move degenerated to "
         "noise; normalized, it retains ≈ 0.85 attraction at the same "
         "distance. v1 classes are byte-stable (Tier-1/2/3 guards green).",
+        "- **Selection statistics and calibration framework** (commits "
+        "`d87db66`, `bdbef99`): Holm–Bonferroni, probabilistic/deflated "
+        "Sharpe ratios, and the `hive_abc.calibration` walk-forward runner — "
+        "§4 applies the statistics to this grid.",
         "",
         "> [!IMPORTANT]",
         "> These runs are exploratory diagnostics, not replacement thesis "
@@ -456,9 +643,30 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         "larger iteration budget, and the adaptive rows compete with a "
         "~14% smaller budget than the baseline they are tested against:",
         "",
-        tests.to_markdown(index=False, floatfmt=".4f"),
+        holm.to_markdown(index=False, floatfmt=".4f"),
         "",
-        "## 4. Interpretation",
+        "## 4. Formal hypothesis test — Holm correction and deflated Sharpe",
+        "",
+        "The family of simultaneous comparisons inside each universe-period "
+        "cell is the six non-baseline configurations of §3 (NaN p-values "
+        "count as 1.0). Holm-corrected significant cells per configuration, "
+        "split by direction:",
+        "",
+        holm_summary.to_markdown(),
+        "",
+        f"Per-cell detail for the winning configuration (`{winner}`): the "
+        "Holm-corrected Wilcoxon outcome plus the deflated Sharpe ratio of "
+        "its best-of-seeds portfolio — the daily-return Sharpe deflated "
+        "against the trial set of all seven configurations' best portfolios "
+        "in that cell (Bailey & López de Prado, 2014), with skewness and "
+        "excess kurtosis from the winner's daily returns and `n_obs` equal "
+        "to the window length:",
+        "",
+        formal.to_markdown(index=False, floatfmt=".4f"),
+        "",
+        formal_text,
+        "",
+        "## 5. Interpretation",
         "",
         bottom_line,
         "",
@@ -478,7 +686,7 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         "the onlooker-refresh effect from the scout policies, so the two v2 "
         "changes are attributable independently.",
         "",
-        "## 5. Metrics used (and why)",
+        "## 6. Metrics used (and why)",
         "",
         "- **Mean per-seed Sortino** — the thesis's headline risk-adjusted "
         "metric, computed with the frozen conventions (daily simple returns "
@@ -491,14 +699,14 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         "reviewer task 9 could only tabulate indirectly is now a first-class "
         "run diagnostic.",
         "- **Wilcoxon signed-rank (paired seeds)** — the thesis's own "
-        "significance methodology (comment 10). Multiple-testing control "
-        "(Holm) and deflated-Sharpe selection arrive with plan SG-3 and "
-        "gate any final configuration claim.",
+        "significance methodology (comment 10). Holm–Bonferroni and the "
+        "deflated Sharpe ratio (`hive_abc.metrics`, SG-3) are applied in "
+        "§4; the SG-5 walk-forward study remains the confirmatory gate.",
         "- Max drawdown / Jensen α / Omega are deliberately deferred to the "
         "calibrated study — the full canonical metric set belongs with the "
         "engine-integrated comparison, not this direct-run diagnostic.",
         "",
-        "## 6. Recommendation for the thesis document",
+        "## 7. Recommendation for the thesis document",
         "",
         "**Yes — add a short activation-analysis subsection, but as an annex "
         "extension, not a results-chapter change.** Concretely:",
@@ -517,7 +725,7 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         "`pfa_sensitivity.md` §5 already frames it: a joint "
         "`max_trials`-and-move calibration with honest multiple-testing "
         "control, now implemented in the repository (`ABCAdaptiveScout`, "
-        "telemetry, and the upcoming calibration framework).",
+        "telemetry, and the `hive_abc.calibration` framework).",
         "",
         "This keeps the document's claims conservative while showing the "
         "committee that the observed limitation became a designed, measured, "
@@ -541,7 +749,13 @@ def write_report(frame: pd.DataFrame, seeds: int) -> None:
         ("Sortino by period — dynamic", frame_to_html(dynamic, "{:.3f}")),
         (
             "Wilcoxon vs ABC original",
-            frame_to_html(tests.set_index(["universe", "period", "model"]), "{:.4f}"),
+            frame_to_html(holm.set_index(["universe", "period", "model"]), "{:.4f}"),
+        ),
+        (
+            "Formal hypothesis test",
+            frame_to_html(holm_summary, "{:.0f}")
+            + frame_to_html(formal.set_index(["universe", "period"]), "{:.4f}")
+            + f"<p>{formal_text}</p>",
         ),
         ("Interpretation", f"<p>{bottom_line}</p>"),
     ]
@@ -569,9 +783,8 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, default=20)
     args = parser.parse_args()
 
-    records = run_grid(args.seeds)
-    frame = pd.DataFrame([record.__dict__ for record in records])
-    write_report(frame, args.seeds)
+    artifacts = run_grid(args.seeds)
+    write_report(artifacts, args.seeds)
     print(f"Wrote {DOCS_DIR / 'scout_activation_telemetry.md'} and .html")
 
 

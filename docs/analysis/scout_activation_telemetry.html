@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scout-activation telemetry diagnostic</title>
+<style>
+:root {
+  --anchor-dark: #1A1A2E;
+  --primary-aqua: #00E5FF;
+  --accent-coral: #FF6B6B;
+  --neutral-light: #F8FAFC;
+  --neutral-border: #E2E8F0;
+  --neutral-text: #1E293B;
+  --muted-text: #64748B;
+  --deep-midnight: #10101E;
+  --font-sans: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--neutral-text);
+  background: var(--neutral-light);
+  line-height: 1.6;
+}
+header {
+  background: var(--anchor-dark);
+  color: #FFFFFF;
+  padding: 48px 8% 40px;
+  border-bottom: 4px solid var(--primary-aqua);
+}
+header h1 { font-size: 2rem; font-weight: 600; }
+header p.subtitle { color: var(--primary-aqua); margin-top: 8px; }
+header p.meta { color: var(--muted-text); font-family: var(--font-mono);
+  font-size: 0.85rem; margin-top: 12px; }
+main { padding: 40px 8%; max-width: 1100px; }
+section { margin-bottom: 40px; }
+h2 {
+  font-size: 1.3rem; font-weight: 600; margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--neutral-border);
+}
+h2 .section-number { color: var(--primary-aqua); font-family: var(--font-mono);
+  margin-right: 10px; }
+p { margin-bottom: 12px; }
+table {
+  border-collapse: collapse; width: 100%; background: #FFFFFF;
+  border: 1px solid var(--neutral-border); border-radius: 12px;
+  overflow: hidden; font-size: 0.9rem; margin-bottom: 16px;
+}
+th {
+  background: var(--anchor-dark); color: #FFFFFF; text-align: left;
+  padding: 10px 14px; font-weight: 600;
+}
+td { padding: 9px 14px; border-top: 1px solid var(--neutral-border);
+  font-family: var(--font-mono); }
+td:first-child { font-family: var(--font-sans); font-weight: 600; }
+tr:nth-child(even) td { background: var(--neutral-light); }
+.notice {
+  border-left: 4px solid var(--accent-coral); background: #FFFFFF;
+  padding: 14px 18px; border-radius: 0 12px 12px 0; margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(26, 26, 46, 0.04);
+}
+.notice strong { color: var(--accent-coral); }
+footer { padding: 24px 8%; color: var(--muted-text); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<header>
+<h1>Scout-activation telemetry diagnostic</h1>
+<p class="subtitle">v2 instrumentation over the frozen thesis harness</p>
+<p class='meta'>generated 2026-07-20 — 20 paired seeds per configuration</p>
+</header>
+<main>
+<section><h2><span class='section-number'>01</span>Scope</h2><div class='notice'><strong>ANNEX</strong> — Exploratory diagnostic only: thesis results and canonical artifacts remain unchanged; adaptive runs use uncalibrated policy defaults.</div></section>
+<section><h2><span class='section-number'>02</span>Activation telemetry</h2><table><thead><tr><th>model</th><th>covid_2020</th><th>gfc_2007_2009</th><th>war_2022</th><th>2023_stability</th></tr></thead><tbody><tr><td>ABC original</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>ABC-FAEM frozen mt=300</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>ABC-FAEM active mt=9</td><td>12.4</td><td>11.7</td><td>11.3</td><td>11.9</td></tr><tr><td>Adaptive FF f=0.25</td><td>2.8</td><td>1.6</td><td>1.4</td><td>2.4</td></tr><tr><td>Adaptive FF f=0.25 (v1 roulette)</td><td>2.5</td><td>1.5</td><td>1.8</td><td>2.5</td></tr><tr><td>Adaptive FF f=0.15</td><td>11.7</td><td>10.7</td><td>10.1</td><td>10.7</td></tr><tr><td>Adaptive Dirichlet f=0.15</td><td>12.3</td><td>13.1</td><td>10.9</td><td>12.3</td></tr></tbody></table></section>
+<section><h2><span class='section-number'>03</span>Aggregate results</h2><table><thead><tr><th>model</th><th>sortino</th><th>fitness</th><th>activations_per_run</th></tr></thead><tbody><tr><td>Adaptive Dirichlet f=0.15</td><td>2.870</td><td>-0.003</td><td>12.137</td></tr><tr><td>ABC original</td><td>2.145</td><td>-0.001</td><td>0.000</td></tr><tr><td>Adaptive FF f=0.25</td><td>2.026</td><td>-0.001</td><td>2.031</td></tr><tr><td>Adaptive FF f=0.25 (v1 roulette)</td><td>1.986</td><td>-0.001</td><td>2.075</td></tr><tr><td>ABC-FAEM frozen mt=300</td><td>1.975</td><td>-0.001</td><td>0.000</td></tr><tr><td>ABC-FAEM active mt=9</td><td>1.964</td><td>-0.001</td><td>11.825</td></tr><tr><td>Adaptive FF f=0.15</td><td>1.960</td><td>-0.001</td><td>10.775</td></tr></tbody></table></section>
+<section><h2><span class='section-number'>04</span>Sortino by period — fixed</h2><table><thead><tr><th>model</th><th>covid_2020</th><th>gfc_2007_2009</th><th>war_2022</th><th>2023_stability</th></tr></thead><tbody><tr><td>ABC original</td><td>4.194</td><td>0.237</td><td>0.482</td><td>4.476</td></tr><tr><td>ABC-FAEM frozen mt=300</td><td>3.826</td><td>0.185</td><td>0.301</td><td>4.239</td></tr><tr><td>ABC-FAEM active mt=9</td><td>3.954</td><td>0.207</td><td>0.175</td><td>4.270</td></tr><tr><td>Adaptive FF f=0.25</td><td>3.933</td><td>0.221</td><td>0.280</td><td>4.369</td></tr><tr><td>Adaptive FF f=0.25 (v1 roulette)</td><td>3.887</td><td>0.207</td><td>0.228</td><td>4.299</td></tr><tr><td>Adaptive FF f=0.15</td><td>3.965</td><td>0.192</td><td>0.199</td><td>4.270</td></tr><tr><td>Adaptive Dirichlet f=0.15</td><td>5.581</td><td>0.536</td><td>1.220</td><td>4.828</td></tr></tbody></table></section>
+<section><h2><span class='section-number'>05</span>Sortino by period — dynamic</h2><table><thead><tr><th>model</th><th>covid_2020</th><th>gfc_2007_2009</th><th>war_2022</th><th>2023_stability</th></tr></thead><tbody><tr><td>ABC original</td><td>3.539</td><td>-0.289</td><td>0.593</td><td>3.927</td></tr><tr><td>ABC-FAEM frozen mt=300</td><td>3.486</td><td>-0.334</td><td>0.357</td><td>3.740</td></tr><tr><td>ABC-FAEM active mt=9</td><td>3.414</td><td>-0.295</td><td>0.343</td><td>3.643</td></tr><tr><td>Adaptive FF f=0.25</td><td>3.495</td><td>-0.314</td><td>0.389</td><td>3.832</td></tr><tr><td>Adaptive FF f=0.25 (v1 roulette)</td><td>3.488</td><td>-0.328</td><td>0.350</td><td>3.758</td></tr><tr><td>Adaptive FF f=0.15</td><td>3.333</td><td>-0.370</td><td>0.469</td><td>3.626</td></tr><tr><td>Adaptive Dirichlet f=0.15</td><td>5.205</td><td>0.140</td><td>1.250</td><td>4.202</td></tr></tbody></table></section>
+<section><h2><span class='section-number'>06</span>Wilcoxon vs ABC original</h2><table><thead><tr><th></th><th>p_value</th><th>significant</th><th>winner</th></tr></thead><tbody><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0192</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0017</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0696</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.0362</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.0215</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0897</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0192</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0826</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.3884</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.1140</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0001</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0002</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.0073</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.0000</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0094</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0004</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0010</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0897</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.4091</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;fixed&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.0532</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.2774</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.5459</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0441</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.8408</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;covid_2020&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.7841</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.7285</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.2943</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0637</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.4980</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;gfc_2007_2009&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.3488</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0017</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0000</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0000</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0532</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.0073</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;war_2022&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.0002</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;ABC-FAEM active mt=9&#x27;)</td><td>0.0107</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;ABC-FAEM frozen mt=300&#x27;)</td><td>0.0002</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive Dirichlet f=0.15&#x27;)</td><td>0.0037</td><td>True</td><td>Adaptive Dirichlet f=0.15</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.15&#x27;)</td><td>0.0172</td><td>True</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.25&#x27;)</td><td>0.2774</td><td>False</td><td>ABC original</td></tr><tr><td>(&#x27;dynamic&#x27;, &#x27;2023_stability&#x27;, &#x27;Adaptive FF f=0.25 (v1 roulette)&#x27;)</td><td>0.0192</td><td>True</td><td>ABC original</td></tr></tbody></table></section>
+<section><h2><span class='section-number'>07</span>Interpretation</h2><p>The strongest adaptive configuration is `Adaptive Dirichlet f=0.15` with mean per-seed Sortino 2.870 across the 8 universe-period cells: +0.726 versus ABC original and +0.906 versus the prior diagnostic's best (`ABC-FAEM active mt=9`). Of its 8 paired Wilcoxon tests against ABC original, 8 are significant at 5% (8 in its favor). Under the uncalibrated default policies this is a directional, not yet conclusive, result — the calibrated study (plan SG-3/SG-4/SG-5) owns the final claim with Holm-corrected significance and deflated-Sharpe selection.</p></section>
+</main>
+<footer>heuristic-portfolio-optimizer — obsidian aqua report</footer>
+</body>
+</html>

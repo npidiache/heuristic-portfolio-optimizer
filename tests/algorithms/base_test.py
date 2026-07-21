@@ -123,6 +123,38 @@ def test_scout_phase_ignores_bees_below_threshold(
     assert np.array_equal(state.population[1].vector, vector_before)
 
 
+def test_scout_never_activates_at_thesis_scale() -> None:
+    # Executable statement of the v1 weakness: at thesis-scale settings the
+    # trial counters never exceed max_trials, so the scout phase is dormant.
+    # This must stay true for v1 defaults forever (regression contract).
+    algo = BeeHive(colony_size=25, max_iterations=60, max_trials=300)
+    result = algo.optimize(sphere, Bounds.box(20), seed=7)
+
+    assert result.scout_activations == 0
+    assert result.scout_activation_iterations == ()
+
+
+def test_scout_telemetry_counts_activations() -> None:
+    # max_trials=0 makes every stalled bee exceed the cap immediately, so the
+    # (at most one per iteration) scout fires and the telemetry must count it.
+    algo = BeeHive(colony_size=4, max_iterations=8, max_trials=0)
+    result = algo.optimize(sphere, Bounds.box(2, -1.0, 1.0), seed=1)
+
+    assert result.scout_activations >= 1
+    assert len(result.scout_activation_iterations) == result.scout_activations
+    assert all(
+        i1 <= i2
+        for i1, i2 in zip(
+            result.scout_activation_iterations,
+            result.scout_activation_iterations[1:],
+            strict=False,
+        )
+    )
+    assert all(
+        iteration in range(8) for iteration in result.scout_activation_iterations
+    )
+
+
 def test_roulette_select_falls_back_to_last_index(
     make_state: Callable[..., _ColonyState],
 ) -> None:

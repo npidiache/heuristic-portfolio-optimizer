@@ -6,7 +6,7 @@
 import numpy as np
 import pytest
 
-from hive_abc.core.types import Bounds
+from hive_abc.core.types import Bounds, OptimizationResult
 
 
 # --------------------------------------------------------------------------------------
@@ -37,3 +37,35 @@ def test_bounds_reject_multidimensional_arrays() -> None:
 def test_bounds_reject_inverted_interval() -> None:
     with pytest.raises(ValueError, match="lower bound"):
         Bounds(lower=np.array([0.0, 1.0]), upper=np.array([1.0, 0.5]))
+
+
+def test_optimization_result_scout_telemetry_defaults() -> None:
+    # The pre-telemetry 7-keyword construction (all existing call sites) must
+    # keep working and yield inert scout telemetry.
+    result = OptimizationResult(
+        best_vector=np.zeros(2),
+        best_value=0.0,
+        best_per_iteration=(1.0, 0.0),
+        mean_per_iteration=(2.0, 1.0),
+        n_evaluations=10,
+        runtime_seconds=0.5,
+        seed=7,
+    )
+    assert result.scout_activations == 0
+    assert result.scout_activation_iterations == ()
+
+
+def test_optimization_result_scout_telemetry_explicit() -> None:
+    result = OptimizationResult(
+        best_vector=np.zeros(2),
+        best_value=0.0,
+        best_per_iteration=(1.0, 0.0),
+        mean_per_iteration=(2.0, 1.0),
+        n_evaluations=10,
+        runtime_seconds=0.5,
+        seed=7,
+        scout_activations=2,
+        scout_activation_iterations=(3, 8),
+    )
+    assert result.scout_activations == 2
+    assert result.scout_activation_iterations == (3, 8)

@@ -14,15 +14,25 @@ from hive_abc.metrics.performance import (
     omega_ratio,
     sortino_ratio,
 )
-from hive_abc.metrics.stats import wilcoxon_sortino_matrix
+from hive_abc.metrics.stats import (
+    deflated_sharpe_ratio,
+    expected_max_sharpe,
+    holm_bonferroni,
+    probabilistic_sharpe_ratio,
+    wilcoxon_sortino_matrix,
+)
 
 __all__ = [
     "concentration_hhi",
+    "deflated_sharpe_ratio",
     "effective_cardinality",
+    "expected_max_sharpe",
+    "holm_bonferroni",
     "jensen_alpha",
     "max_drawdown",
     "max_weight",
     "omega_ratio",
+    "probabilistic_sharpe_ratio",
     "sortino_ratio",
     "wilcoxon_sortino_matrix",
 ]

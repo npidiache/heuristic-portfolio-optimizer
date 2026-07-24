@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Diagnóstico y rediseño del mecanismo explorador en Artificial Bee Colony para optimización de portafolios: telemetría de activación, reinicio de Dirichlet élite y validación estadística en ocho celdas régimen–universo.">
+<title>Optimización de portafolios mediante Artificial Bee Colony: diagnóstico y rediseño del mecanismo explorador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<script>
+// inicialización del tema antes del primer pintado (sin FOUC); ?theme=light|dark tiene prioridad
+(function () {
+  var stored = null;
+  try { stored = localStorage.getItem('scout-viz-theme'); } catch (e) {}
+  var q = new URLSearchParams(location.search).get('theme');
+  var theme = q === 'light' || q === 'dark' ? q
+    : stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+<style>
+  :root {
+    --ground: #ffffff;
+    --panel: #f8fafc;
+    --panel-2: #eef2f7;
+    --line: #e2e8f0;
+    --ink: #1e293b;
+    --muted: #64748b;
+    --accent: #0097a7;
+    --accent-strong: #00707f;
+    --accent-soft: rgba(0, 151, 167, 0.10);
+    --status: #e05252;
+    --status-soft: rgba(224, 82, 82, 0.10);
+    --series-other: #475569;
+    --series-base: #1e293b;
+    --hero-ground: #1a1a2e;
+    --hero-deep: #12121f;
+    --hero-ink: #f8fafc;
+    --hero-muted: #8b96b3;
+    --hero-line: rgba(255, 255, 255, 0.10);
+    --ramp-0: #54b8ce; --ramp-1: #0097a7; --ramp-2: #00707f; --ramp-3: #004e5c;
+    --font-sans: 'Outfit', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Fira Code', monospace;
+  }
+  :root[data-theme="dark"] {
+    --ground: #12121f;
+    --panel: #1a1a2e;
+    --panel-2: #212138;
+    --line: rgba(255, 255, 255, 0.10);
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --accent: #00e5ff;
+    --accent-strong: #00e5ff;
+    --accent-soft: rgba(0, 229, 255, 0.10);
+    --status: #ff6b6b;
+    --status-soft: rgba(255, 107, 107, 0.10);
+    --series-other: #94a3b8;
+    --series-base: #f8fafc;
+    --ramp-0: #245a6c; --ramp-1: #0086a0; --ramp-2: #00b5ce; --ramp-3: #00e5ff;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-sans); font-size: 15.5px; line-height: 1.6;
+    transition: background 0.2s, color 0.2s;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 22px 72px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  h1, h2, h3 { text-wrap: balance; font-weight: 700; }
+  p { max-width: none; }
+  button { font: inherit; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ── hero: Midnight Indigo fijo en ambos temas (regla de portada de marca) ── */
+  .hero {
+    background: var(--hero-ground)
+      radial-gradient(ellipse 90% 70% at 78% 8%, rgba(0, 229, 255, 0.09), transparent 60%);
+    color: var(--hero-ink); border-bottom: 1px solid var(--hero-line);
+    position: relative;
+  }
+  .hero-inner {
+    max-width: 1060px; margin: 0 auto; padding: 52px 22px 40px;
+    display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(380px, 0.84fr);
+    gap: 40px; align-items: start;
+  }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #00e5ff; margin: 0 0 14px;
+  }
+  .hero h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.015em; }
+  .hero .lede { color: var(--hero-muted); font-size: 15.5px; line-height: 1.62; margin: 0 0 24px; }
+  .hero .lede b { color: var(--hero-ink); font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: baseline; gap: 8px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--hero-line);
+    border-radius: 999px; padding: 7px 14px; font-size: 12.5px; color: var(--hero-muted);
+  }
+  .chip .v { font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: #00e5ff; }
+  .chip.warn .v { color: #ff6b6b; }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: #00e5ff; align-self: center; }
+  .chip.warn .dot { background: #ff6b6b; }
+
+  #theme-toggle {
+    position: absolute; top: 18px; right: 22px; z-index: 5;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid var(--hero-line);
+    color: var(--hero-ink); cursor: pointer; display: grid; place-items: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  #theme-toggle:hover { background: rgba(255, 255, 255, 0.12); border-color: #00e5ff; }
+  #theme-toggle svg { width: 18px; height: 18px; }
+  :root[data-theme="light"] #icon-moon { display: none; }
+  :root[data-theme="dark"] #icon-sun { display: none; }
+
+  /* simulador del símplex */
+  .sim {
+    background: var(--hero-deep); border: 1px solid var(--hero-line);
+    border-radius: 14px; padding: 14px 14px 12px;
+  }
+  .sim canvas { width: 100%; height: auto; display: block; border-radius: 8px; }
+  .sim-controls { display: flex; gap: 8px; margin: 12px 0 8px; flex-wrap: wrap; }
+  .sim-controls button {
+    flex: 1 1 auto; background: rgba(255, 255, 255, 0.05); color: var(--hero-ink);
+    border: 1px solid var(--hero-line); border-radius: 8px; padding: 7px 10px;
+    font-size: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .sim-controls button:hover { background: rgba(255, 255, 255, 0.10); }
+  .sim-controls button[aria-pressed="true"] { border-color: #00e5ff; color: #00e5ff; }
+  .sim-read { font-size: 12px; color: var(--hero-muted); min-height: 52px; margin: 0; }
+  .sim-read .v { color: #00e5ff; font-family: var(--font-mono); font-weight: 700; }
+
+  /* ── secciones ── */
+  section { margin-top: 56px; }
+  .sec-eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 8px;
+  }
+  section h2 { font-size: 24px; line-height: 1.25; margin: 0 0 12px; }
+  section > p:not(.sec-eyebrow) { width: 100%; }
+  section .note { color: var(--muted); font-size: 13.5px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+  }
+
+  /* fichas de estadística */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 18px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .tile .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+  .tile .n { font-family: var(--font-mono); font-weight: 700; font-size: 26px; margin-top: 4px; }
+  .tile .n.accent { color: var(--accent); }
+  .tile .n.status { color: var(--status); }
+  .tile .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* común a los gráficos */
+  .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 11px; height: 11px; border-radius: 50%; }
+  .sw.winner { background: var(--accent); }
+  .sw.base { background: transparent; border: 2px solid var(--series-base); }
+  .sw.other { background: var(--series-other); opacity: 0.75; }
+  .sw.worse { background: var(--status); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    background: transparent; color: var(--muted); border: 0; padding: 6px 16px;
+    font-size: 12.5px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .plot-scroll { overflow-x: auto; }
+  .plot-scroll svg { display: block; min-width: 640px; width: 100%; height: auto; }
+  svg text { font-family: var(--font-sans); }
+  svg .mono-t { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* escalera de umbrales */
+  .pulse { animation: pulse 2.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+
+  /* tooltip */
+  #tip {
+    position: fixed; z-index: 50; pointer-events: none; opacity: 0;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 11px; font-size: 12.5px;
+    box-shadow: 0 6px 24px rgba(10, 10, 25, 0.25); max-width: 280px;
+    transition: opacity 0.1s;
+  }
+  #tip .t-h { font-weight: 700; margin-bottom: 2px; }
+  #tip .t-m { color: var(--muted); }
+  #tip .mono { font-weight: 600; }
+
+  /* evidencia absoluta: medidores lineales DSR */
+  .dsr-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; margin-top: 26px;
+  }
+  .dsr-head h3 { font-size: 18px; margin: 0 0 4px; }
+  .dsr-head .note { margin: 0; }
+  .dsr-threshold {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 10px;
+    border-left: 2px solid var(--status); padding-left: 12px; color: var(--muted);
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .dsr-threshold strong {
+    color: var(--ink); font-family: var(--font-mono); font-size: 18px; letter-spacing: 0;
+  }
+  .gauges {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px; margin-top: 16px;
+  }
+  .dsr-group {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px;
+  }
+  .dsr-group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding-bottom: 12px; margin-bottom: 2px; border-bottom: 1px solid var(--line);
+  }
+  .dsr-group-title { font-size: 14px; font-weight: 700; }
+  .dsr-group-summary { color: var(--muted); font-size: 11.5px; }
+  .dsr-group-summary .mono { color: var(--ink); font-weight: 700; }
+  .gauge {
+    display: grid; grid-template-columns: minmax(112px, 0.9fr) minmax(150px, 1.35fr) 74px;
+    gap: 14px; align-items: center; padding: 14px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+  .gauge:last-child { border-bottom: 0; padding-bottom: 2px; }
+  .gauge .g-k { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
+  .gauge .g-meta { color: var(--muted); font-size: 10.5px; margin-top: 4px; white-space: nowrap; }
+  .g-scale {
+    position: relative; height: 8px; background: var(--panel-2);
+    border-radius: 999px;
+  }
+  .g-fill {
+    position: absolute; inset: 0 auto 0 0; border-radius: 999px;
+    background: var(--series-other);
+  }
+  .gauge.pass .g-fill { background: var(--accent); }
+  .g-threshold {
+    position: absolute; top: -5px; bottom: -5px; left: 95%;
+    width: 2px; background: var(--status); border-radius: 2px;
+  }
+  .g-dot {
+    position: absolute; top: 50%; width: 12px; height: 12px;
+    border-radius: 50%; transform: translate(-50%, -50%);
+    background: var(--ground); border: 3px solid var(--series-other);
+  }
+  .gauge.pass .g-dot { border-color: var(--accent); }
+  .g-axis {
+    display: flex; justify-content: space-between; color: var(--muted);
+    font-family: var(--font-mono); font-size: 9px; margin-top: 6px;
+  }
+  .g-result { text-align: right; }
+  .gauge .g-v {
+    display: block; font-family: var(--font-mono); font-weight: 700;
+    font-size: 17px; line-height: 1.2;
+  }
+  .gauge.pass .g-v { color: var(--accent); }
+  .gauge.below .g-v { color: var(--ink); }
+  .g-status { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+  .gauge.pass .g-status { color: var(--accent-strong); }
+  .gauge.below .g-status { color: var(--status); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.03em; }
+  td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  td:first-child { font-family: var(--font-sans); }
+  details { margin-top: 14px; }
+  summary { cursor: pointer; color: var(--accent); font-size: 13.5px; }
+  .tbl-scroll { overflow-x: auto; margin-top: 10px; }
+
+  .verdict {
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    border-radius: 0 10px 10px 0; padding: 16px 18px; margin-top: 18px; font-size: 14.5px;
+  }
+  .caveat {
+    border-left: 3px solid var(--status); background: var(--status-soft);
+    border-radius: 0 10px 10px 0; padding: 14px 18px; margin-top: 14px;
+    font-size: 13px; color: var(--muted);
+  }
+  .caveat b { color: var(--status); }
+
+  footer { margin-top: 60px; border-top: 1px solid var(--line); padding-top: 18px; font-size: 12.5px; color: var(--muted); }
+  footer .mono { font-size: 12px; }
+
+  @media (max-width: 880px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .gauges { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .wrap { padding-inline: 16px; }
+    .hero-inner { padding: 46px 16px 34px; }
+    .hero h1 { font-size: clamp(28px, 9vw, 36px); }
+    section { margin-top: 44px; }
+    section h2 { font-size: 21px; }
+    .card { padding: 14px; }
+    .dsr-head { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .gauge { grid-template-columns: minmax(96px, 0.8fr) minmax(136px, 1.2fr) 66px; gap: 10px; }
+    .gauge .g-meta { white-space: normal; }
+  }
+  @media (max-width: 430px) {
+    .gauge { grid-template-columns: 1fr 64px; }
+    .g-bullet { grid-column: 1 / -1; grid-row: 2; }
+    .g-result { grid-column: 2; grid-row: 1; }
+    .dsr-group { padding: 14px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <button id="theme-toggle" aria-label="Alternar modo oscuro" title="Alternar modo oscuro">
+    <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+  <div class="hero-inner">
+    <div>
+      <p class="eyebrow">hive_abc v2 · estudio diagnóstico complementario · 20 semillas emparejadas · 8 celdas régimen–universo</p>
+      <h1>Optimización de portafolios mediante Artificial Bee Colony: diagnóstico y rediseño del mecanismo explorador</h1>
+      <p class="lede">
+        Bajo la calibración empleada en la tesis (<span class="mono">max_trials = 0.6 × 25 abejas × 20 activos = 300</span>,
+        frente a un horizonte de 60 iteraciones), la fase exploradora del ABC <b>no se activa</b> y los mecanismos de
+        recuperación permanecen latentes en las ejecuciones canónicas. La instrumentación explícita de este proceso permite
+        verificar dicho comportamiento y evaluar una alternativa: un <b>reinicio de Dirichlet concentrado en la media de la
+        élite y formulado sobre el símplex de posiciones largas</b>. Con un presupuesto de iteraciones aproximadamente
+        <b>14% menor</b>, esta política supera al ABC canónico en las <b>8</b> celdas régimen–universo tras la corrección de
+        Holm.
+      </p>
+      <div class="chips" role="list">
+        <span class="chip" role="listitem"><span class="dot"></span>superioridad tras Holm <span class="v">8 / 8</span></span>
+        <span class="chip" role="listitem"><span class="dot"></span>Sortino medio <span class="v">+0.73</span> frente a ABC</span>
+        <span class="chip" role="listitem"><span class="dot"></span>mejor fitness Ec. 18 <span class="v">−0.003</span></span>
+        <span class="chip warn" role="listitem"><span class="dot"></span>DSR ≥ 0.95 en <span class="v">4 / 8</span> celdas</span>
+      </div>
+    </div>
+    <div class="sim">
+      <canvas id="simplex" width="880" height="640" role="img"
+        aria-label="Símplex ilustrativo de 3 activos que muestra dónde reubica cada política de recuperación del explorador a una abeja estancada"></canvas>
+      <div class="sim-controls" role="group" aria-label="Política de recuperación">
+        <button id="b-ff" aria-pressed="false">Luciérnaga v1</button>
+        <button id="b-uni" aria-pressed="false">Reinicio uniforme</button>
+        <button id="b-dir" aria-pressed="true">Dirichlet élite</button>
+      </div>
+      <p class="sim-read" id="sim-read"></p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section aria-labelledby="s-problem">
+    <p class="sec-eyebrow">diagnóstico del mecanismo</p>
+    <h2 id="s-problem">Incompatibilidad entre el umbral de estancamiento y el horizonte de optimización</h2>
+    <p>Una abeja explora cuando su contador de intentos fallidos supera <span class="mono">max_trials</span>. La calibración
+      fijó el límite según la <em>dimensión del problema</em> — <span class="mono">0.6 × 25 × 20 = 300</span> — pero los
+      contadores se acumulan con el <em>horizonte de iteraciones</em> (60). Los límites proporcionales ligados al horizonte
+      (9 y 15) se activan a tasas medibles, mientras que el umbral calibrado de 300 nunca se alcanza. En la práctica, esta
+      parametrización inhibe por completo el mecanismo de contingencia.</p>
+    <div class="card">
+      <div class="chart-head">
+        <span class="note">Umbrales de disparo del explorador sobre el contador de intentos fallidos, con activaciones medias medidas por ejecución (telemetría, 20 semillas emparejadas)</span>
+      </div>
+      <div class="plot-scroll"><div id="ladder"></div></div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="k">activaciones del explorador, configuraciones canónicas</div>
+        <div class="n status">0</div><div class="s">en las 8 celdas × 20 semillas, tanto para ABC original como para ABC-FAEM con el umbral canónico</div></div>
+      <div class="tile"><div class="k">activaciones por ejecución con f=0.15 (límite 9)</div>
+        <div class="n accent">≈ 12</div><div class="s">la fase exploradora se activa de forma acotada, sin dominar el presupuesto computacional</div></div>
+      <div class="tile"><div class="k">atracción β de luciérnaga v1 en 20 dimensiones</div>
+        <div class="n status">≈ 0.01</div><div class="s">frente a ≈ 0.85 tras el escalado corregido por √d; el movimiento hacia la élite pierde eficacia sin esta corrección</div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-discovery">
+    <p class="sec-eyebrow">hallazgo principal</p>
+    <h2 id="s-discovery">La activación es una condición necesaria, pero no suficiente</h2>
+    <p>Todas las variantes adaptativas activan el explorador, pero solo una supera la línea base latente. Ante tasas de
+      activación comparables, la diferencia de desempeño se explica por la geometría del movimiento de recuperación, no
+      por su frecuencia.</p>
+    <div class="chart-head">
+      <div class="legend">
+        <span class="li"><span class="sw winner"></span>Dirichlet élite f=0.15 (mejor desempeño)</span>
+        <span class="li"><span class="sw base"></span>ABC original (línea base latente)</span>
+        <span class="li"><span class="sw other"></span>otras configuraciones</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="plot-scroll"><div id="scatter"></div></div>
+      <p class="note" style="margin:10px 2px 0">Sortino medio por semilla en las 8 celdas régimen–universo frente a las
+        activaciones medias del explorador por ejecución. <span class="mono">ABC-FAEM activo mt=9</span> y
+        <span class="mono">FF adaptativo f=0.15</span> presentan una frecuencia similar a Dirichlet élite
+        (~11–12 activaciones por ejecución), pero permanecen por debajo de ABC original. Dirichlet élite es además la única
+        configuración con mejor fitness en la Ec. 18 (<span class="mono">−0.003</span> frente a
+        <span class="mono">−0.001</span>), lo que indica una mejora en el objetivo optimizado y no únicamente en la métrica
+        de evaluación.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-instrument">
+    <p class="sec-eyebrow">instrumentación</p>
+    <h2 id="s-instrument">Medición explícita de la activación del explorador</h2>
+    <p class="note">Activaciones medias del explorador por ejecución, registradas directamente en cada resultado del
+      optimizador. Pasa el cursor sobre cualquier celda para consultar el detalle.</p>
+    <div class="card">
+      <div class="plot-scroll"><div id="heatmap"></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-result">
+    <p class="sec-eyebrow">desempeño comparado</p>
+    <h2 id="s-result">Efecto de la geometría de reinicio bajo un presupuesto comparable</h2>
+    <div class="chart-head">
+      <div class="legend">
+        <span class="li"><span class="sw winner"></span>Dirichlet élite f=0.15 (mejor desempeño)</span>
+        <span class="li"><span class="sw base"></span>ABC original (línea base)</span>
+        <span class="li"><span class="sw other"></span>otras configuraciones</span>
+      </div>
+      <div class="seg" role="group" aria-label="Universo">
+        <button id="u-fixed" aria-pressed="true">fijo</button>
+        <button id="u-dyn" aria-pressed="false">dinámico</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="plot-scroll"><div id="dotplot"></div></div>
+      <p class="note" style="margin:10px 2px 0">Sortino medio por semilla para cada período de análisis. Las configuraciones
+        adaptativas emplean 25 abejas × 60 iteraciones, un presupuesto aproximadamente 14% menor que las 70 iteraciones
+        calibradas de ABC original.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-verdict">
+    <p class="sec-eyebrow">validación estadística</p>
+    <h2 id="s-verdict">Significancia relativa y robustez absoluta del desempeño</h2>
+    <p class="note">Prueba de rangos con signo de Wilcoxon emparejada frente a ABC original, con 20 semillas por celda.
+      El relleno identifica valores p sin corregir inferiores a 0.05; una mayor intensidad representa un valor p menor. El
+      contorno indica que el resultado conserva significancia tras la corrección de Holm–Bonferroni dentro de cada celda
+      (familia de seis configuraciones alternativas). Pasa el cursor sobre cualquier celda para consultar el detalle.</p>
+    <div class="card">
+      <div class="plot-scroll"><div id="pmap"></div></div>
+      <div class="legend" style="margin-top:12px">
+        <span class="li"><span class="sw winner"></span>significativo, la configuración supera a ABC</span>
+        <span class="li"><span class="sw worse"></span>significativo, ABC supera a la configuración</span>
+        <span class="li"><span class="sw" style="background:var(--panel-2);border:1px solid var(--line)"></span>no significativo</span>
+        <span class="li"><span class="sw" style="background:transparent;border:2px solid var(--ink);border-radius:3px"></span>significativo tras Holm</span>
+      </div>
+    </div>
+    <div class="dsr-head">
+      <div>
+        <h3>Sharpe deflactado por régimen y universo</h3>
+        <p class="note">DSR del mejor portafolio de Dirichlet élite en cada celda, calculado sobre retornos diarios y
+          ajustado por los ensayos de las siete configuraciones (Bailey y López de Prado, 2014).</p>
+      </div>
+      <div class="dsr-threshold" aria-label="Umbral de referencia del Sharpe deflactado">
+        umbral DSR <strong>0.95</strong>
+      </div>
+    </div>
+    <div class="gauges" id="gauges"></div>
+    <div class="verdict">
+      <b>Hipótesis evaluada:</b> sustituir el explorador latente por el reinicio Dirichlet élite mejora el desempeño frente
+      a ABC original. <b>Evidencia relativa:</b> Dirichlet élite presenta resultados significativamente superiores en
+      <span class="mono">8/8</span> celdas después de la corrección de Holm. <b>Evidencia absoluta:</b> la robustez depende
+      del régimen; el DSR alcanza o supera 0.95 en las celdas de COVID y estabilidad (hasta
+      <span class="mono">0.9998</span>), pero se ubica entre 0.51 y 0.72 en los períodos de crisis financiera y guerra. En
+      estas últimas ventanas, el Sharpe del portafolio seleccionado no permite separar con suficiente evidencia la
+      habilidad del efecto de selección entre siete configuraciones.
+    </div>
+    <div class="caveat">
+      <b>Alcance del análisis.</b> Estudio diagnóstico complementario con ventanas dentro de muestra, bajo las convenciones
+      metodológicas de la tesis y valores predeterminados de la política, sin calibración adicional. La deflación considera
+      las siete configuraciones evaluadas, no la totalidad del espacio de diseño. Como extensión confirmatoria se propone
+      el estudio <i>walk-forward</i> SG-5 sobre el panel 2000–2025.
+    </div>
+    <details>
+      <summary>Vista de tabla — agregado sobre las 8 celdas</summary>
+      <div class="tbl-scroll"><table id="agg-table" aria-label="Tabla de resultados agregados"></table></div>
+    </details>
+  </section>
+
+  <footer>
+    <b>Fuente:</b> elaboración propia a partir de 20 semillas emparejadas por celda (20 de julio de 2026).
+    Metodología y trazabilidad en <span class="mono">docs/analysis/scout_activation_telemetry.md</span> ·
+    Pidiache y Ovalle · Magíster en Finanzas · Universidad Externado de Colombia
+  </footer>
+</div>
+
+<div id="tip" role="tooltip"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ───────────── datos — transcritos de docs/analysis/scout_activation_telemetry.md ───────────── */
+const PERIODS = ['covid_2020', 'gfc_2007_2009', 'war_2022', '2023_stability'];
+const PERIOD_SHORT = { covid_2020: 'COVID 2020', gfc_2007_2009: 'Crisis 2007–09', war_2022: 'Guerra 2022', '2023_stability': 'Estabilidad 2023–24' };
+const UNI_SHORT = { fixed: 'fijo', dynamic: 'dinámico' };
+const CONFIGS = [
+  { id: 'abc',    name: 'ABC original',                   role: 'base'   },
+  { id: 'frozen', name: 'ABC-FAEM congelado mt=300',      role: 'other'  },
+  { id: 'mt9',    name: 'ABC-FAEM activo mt=9',           role: 'other'  },
+  { id: 'ff25',   name: 'FF adaptativo f=0.25',           role: 'other'  },
+  { id: 'ff25v1', name: 'FF adaptativo f=0.25 (ruleta v1)',role: 'other'  },
+  { id: 'ff15',   name: 'FF adaptativo f=0.15',           role: 'other'  },
+  { id: 'dir',    name: 'Dirichlet adaptativo f=0.15',    role: 'winner' },
+];
+const ACTIVATIONS = { // activaciones medias/ejec. por período (ambos universos) — md §1
+  abc:    [0, 0, 0, 0],           frozen: [0, 0, 0, 0],
+  mt9:    [12.4, 11.7, 11.3, 11.9], ff25: [2.8, 1.6, 1.4, 2.4],
+  ff25v1: [2.5, 1.5, 1.8, 2.5],   ff15: [11.7, 10.7, 10.1, 10.7],
+  dir:    [12.3, 13.1, 10.9, 12.3],
+};
+const SORTINO = { // Sortino medio por semilla — md §2
+  fixed: {
+    abc: [4.194, 0.237, 0.482, 4.476], frozen: [3.826, 0.185, 0.301, 4.239],
+    mt9: [3.954, 0.207, 0.175, 4.270], ff25: [3.933, 0.221, 0.280, 4.369],
+    ff25v1: [3.887, 0.207, 0.228, 4.299], ff15: [3.965, 0.192, 0.199, 4.270],
+    dir: [5.581, 0.536, 1.220, 4.828],
+  },
+  dynamic: {
+    abc: [3.539, -0.289, 0.593, 3.927], frozen: [3.486, -0.334, 0.357, 3.740],
+    mt9: [3.414, -0.295, 0.343, 3.643], ff25: [3.495, -0.314, 0.389, 3.832],
+    ff25v1: [3.488, -0.328, 0.350, 3.758], ff15: [3.333, -0.370, 0.469, 3.626],
+    dir: [5.205, 0.140, 1.250, 4.202],
+  },
+};
+const AGG = { // media sobre las 8 celdas: sortino, fitness Ec. 18, activaciones/ejec. — md §2
+  abc: [2.145, -0.001, 0.0], frozen: [1.975, -0.001, 0.0], mt9: [1.964, -0.001, 11.825],
+  ff25: [2.026, -0.001, 2.031], ff25v1: [1.986, -0.001, 2.075], ff15: [1.960, -0.001, 10.775],
+  dir: [2.870, -0.003, 12.137],
+};
+/* Wilcoxon emparejado vs ABC original — md §3. Por cada config no base, 8 celdas en orden
+   [fijo×4 períodos, dinámico×4 períodos]: [p, significativo, holm_significativo, a_favor]. */
+const WILCOXON = {
+  dir:    [[0.0000, 1, 1, 1], [0.0000, 1, 1, 1], [0.0000, 1, 1, 1], [0.0010, 1, 1, 1],
+           [0.0000, 1, 1, 1], [0.0000, 1, 1, 1], [0.0000, 1, 1, 1], [0.0037, 1, 1, 1]],
+  frozen: [[0.0017, 1, 1, 0], [0.0192, 1, 0, 0], [0.0002, 1, 1, 0], [0.0004, 1, 1, 0],
+           [0.5459, 0, 0, 0], [0.2943, 0, 0, 0], [0.0000, 1, 1, 0], [0.0002, 1, 1, 0]],
+  mt9:    [[0.0192, 1, 0, 0], [0.0897, 0, 0, 0], [0.0001, 1, 1, 0], [0.0094, 1, 1, 0],
+           [0.2774, 0, 0, 0], [0.7285, 0, 0, 0], [0.0017, 1, 1, 0], [0.0107, 1, 1, 0]],
+  ff25:   [[0.0362, 1, 0, 0], [0.3884, 0, 0, 0], [0.0073, 1, 1, 0], [0.4091, 0, 0, 0],
+           [0.8408, 0, 0, 0], [0.4980, 0, 0, 0], [0.0073, 1, 1, 0], [0.2774, 0, 0, 0]],
+  ff25v1: [[0.0215, 1, 0, 0], [0.1140, 0, 0, 0], [0.0000, 1, 1, 0], [0.0532, 0, 0, 0],
+           [0.7841, 0, 0, 0], [0.3488, 0, 0, 0], [0.0002, 1, 1, 0], [0.0192, 1, 0, 0]],
+  ff15:   [[0.0696, 0, 0, 0], [0.0826, 0, 0, 0], [0.0000, 1, 1, 0], [0.0897, 0, 0, 0],
+           [0.0441, 1, 0, 0], [0.0637, 0, 0, 0], [0.0532, 0, 0, 0], [0.0172, 1, 0, 0]],
+};
+const DSR = [ // universo, período, dsr, sharpe diario, n_obs — md §4
+  ['fixed', 'covid_2020', 0.9832, 0.1944, 124],
+  ['fixed', 'gfc_2007_2009', 0.6467, 0.0246, 376],
+  ['fixed', 'war_2022', 0.6804, 0.0609, 124],
+  ['fixed', '2023_stability', 0.9998, 0.1597, 501],
+  ['dynamic', 'covid_2020', 0.9801, 0.1962, 124],
+  ['dynamic', 'gfc_2007_2009', 0.5095, 0.0090, 376],
+  ['dynamic', 'war_2022', 0.7208, 0.0699, 124],
+  ['dynamic', '2023_stability', 0.9997, 0.1486, 501],
+];
+
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SVGNS = 'http://www.w3.org/2000/svg';
+const CFG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c.id, c]));
+const el = (tag, attrs, parent) => {
+  const n = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+};
+
+/* ─────────────────────────────── conmutador de tema ─────────────────────────── */
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('scout-viz-theme', next); } catch (e) {}
+  drawLadder(); drawScatter(); drawHeatmap(); drawDotplot(); drawPmap();
+});
+
+/* ─────────────────────────────── tooltip ────────────────────────────────────── */
+const tip = document.getElementById('tip');
+function showTip(html, x, y) {
+  tip.innerHTML = html;
+  tip.style.opacity = '1';
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(x + pad, innerWidth - w - 8) + 'px';
+  tip.style.top = (y - h - pad < 8 ? y + pad : y - h - pad) + 'px';
+}
+const hideTip = () => { tip.style.opacity = '0'; };
+
+/* ───────────────────────── simulador del símplex (hero) ─────────────────────── */
+const canvas = document.getElementById('simplex');
+const ctx = canvas.getContext('2d');
+const simRead = document.getElementById('sim-read');
+let rngState = 42;
+const rand = () => { rngState = (rngState * 1664525 + 1013904223) >>> 0; return rngState / 4294967296; };
+const randn = () => {
+  let u = 0, v = 0;
+  while (u === 0) u = rand();
+  while (v === 0) v = rand();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
+const gammaSample = (a) => { // Marsaglia–Tsang, a > 0
+  if (a < 1) { const u = rand(); return gammaSample(a + 1) * Math.pow(u, 1 / a); }
+  const d = a - 1 / 3, c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x, v;
+    do { x = randn(); v = 1 + c * x; } while (v <= 0);
+    v = v * v * v;
+    const u = rand();
+    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+};
+const dirichlet = (alpha) => {
+  const g = alpha.map(gammaSample);
+  const s = g.reduce((x, y) => x + y, 0);
+  return g.map(x => x / s);
+};
+const ELITE = [0.56, 0.30, 0.14];
+const SCOUT = [0.10, 0.18, 0.72];
+const W = canvas.width, H = canvas.height;
+const V = [[W / 2, 64], [70, H - 88], [W - 70, H - 88]]; // A arriba, B izquierda, C derecha
+const bary = (w) => [
+  w[0] * V[0][0] + w[1] * V[1][0] + w[2] * V[2][0],
+  w[0] * V[0][1] + w[1] * V[1][1] + w[2] * V[2][1],
+];
+const POLICIES = {
+  ff: {
+    read: () => `Movimiento de luciérnaga v1 a la dimensionalidad de la tesis: la distancia típica entre abejas tiene ` +
+      `<span class="v">r² ≈ d/6 ≈ 3.3</span>, de modo que <span class="v">β = exp(−γ·r²) ≈ 0.01</span>. En consecuencia, ` +
+      `el movimiento hacia la élite apenas se separa del punto estancado. El escalado corregido (r ÷ √d) mantiene ` +
+      `<span class="v">β ≈ 0.85</span>: existe activación, pero el desplazamiento original resulta ineficaz.`,
+    sample: () => {
+      const jitter = 0.035;
+      const w = SCOUT.map(x => Math.max(0.001, x + (rand() - 0.5) * jitter));
+      const s = w[0] + w[1] + w[2];
+      return w.map(x => x / s);
+    },
+  },
+  uni: {
+    read: () => `Reinicio canónico del ABC: muestreo uniforme en la caja y posterior normalización. La política no ` +
+      `incorpora la información acumulada por la colonia y concentra masa alrededor del baricentro; por ello, la distancia ` +
+      `media respecto de la élite se mantiene <span class="v">elevada</span>.`,
+    sample: () => dirichlet([1, 1, 1]),
+  },
+  dir: {
+    read: () => `Dirichlet(<span class="v">20 · media élite</span>): nativo del símplex, concentrado en la ` +
+      `dirección de la élite y, al mismo tiempo, con dispersión exploratoria. Esta política presenta desempeño superior en ` +
+      `<span class="v">8/8</span> celdas después de la corrección de Holm.`,
+    sample: () => dirichlet([20 * ELITE[0] + 0.01, 20 * ELITE[1] + 0.01, 20 * ELITE[2] + 0.01]),
+  },
+};
+let simPoints = [], simDrawn = 0, simAnim = null;
+function drawSimBase() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(165,185,225,0.28)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(V[0][0], V[0][1]); ctx.lineTo(V[1][0], V[1][1]);
+  ctx.lineTo(V[2][0], V[2][1]); ctx.closePath(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(165,185,225,0.08)';
+  for (let f = 0.25; f < 1; f += 0.25) {
+    for (const [i, j, k] of [[0, 1, 2], [1, 2, 0], [2, 0, 1]]) {
+      const p1 = [V[i][0] + (V[j][0] - V[i][0]) * f, V[i][1] + (V[j][1] - V[i][1]) * f];
+      const p2 = [V[i][0] + (V[k][0] - V[i][0]) * f, V[i][1] + (V[k][1] - V[i][1]) * f];
+      ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+    }
+  }
+  ctx.fillStyle = 'rgba(139,150,179,0.9)';
+  ctx.font = '600 20px Outfit, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('activo A', V[0][0], V[0][1] - 22);
+  ctx.fillText('activo B', V[1][0] - 6, V[1][1] + 34);
+  ctx.fillText('activo C', V[2][0] + 6, V[2][1] + 34);
+  const e = bary(ELITE);
+  const grad = ctx.createRadialGradient(e[0], e[1], 4, e[0], e[1], 90);
+  grad.addColorStop(0, 'rgba(0,229,255,0.20)'); grad.addColorStop(1, 'rgba(0,229,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(e[0], e[1], 90, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath(); ctx.arc(e[0], e[1], 7, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = 'rgba(248,250,252,0.95)';
+  ctx.font = '600 17px Outfit, system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('media élite ★', e[0] + 14, e[1] + 5);
+  const s = bary(SCOUT);
+  ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(s[0], s[1], 8, 0, 2 * Math.PI); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,107,107,0.95)';
+  ctx.fillText('abeja estancada', s[0] + 14, s[1] + 5);
+}
+function runPolicy(key) {
+  for (const [k, id] of [['ff', 'b-ff'], ['uni', 'b-uni'], ['dir', 'b-dir']]) {
+    document.getElementById(id).setAttribute('aria-pressed', String(k === key));
+  }
+  rngState = 42;
+  const pol = POLICIES[key];
+  simPoints = Array.from({ length: 90 }, () => bary(pol.sample()));
+  simRead.innerHTML = pol.read();
+  simDrawn = 0;
+  if (simAnim) cancelAnimationFrame(simAnim);
+  if (reduced) { drawSimBase(); paintSimPoints(simPoints.length); return; }
+  const step = () => {
+    drawSimBase();
+    simDrawn = Math.min(simPoints.length, simDrawn + 4);
+    paintSimPoints(simDrawn);
+    if (simDrawn < simPoints.length) simAnim = requestAnimationFrame(step);
+  };
+  simAnim = requestAnimationFrame(step);
+}
+function paintSimPoints(n) {
+  ctx.fillStyle = 'rgba(0,229,255,0.55)';
+  for (let i = 0; i < n; i++) {
+    ctx.beginPath(); ctx.arc(simPoints[i][0], simPoints[i][1], 4.5, 0, 2 * Math.PI); ctx.fill();
+  }
+}
+document.getElementById('b-ff').addEventListener('click', () => runPolicy('ff'));
+document.getElementById('b-uni').addEventListener('click', () => runPolicy('uni'));
+document.getElementById('b-dir').addEventListener('click', () => runPolicy('dir'));
+drawSimBase();
+setTimeout(() => runPolicy('dir'), reduced ? 0 : 500);
+
+/* ─────────────────── escalera de umbrales (el problema) ─────────────────────── */
+function drawLadder() {
+  const box = document.getElementById('ladder');
+  box.innerHTML = '';
+  const w = 940, h = 170, x0 = 30, x1 = w - 30, axisY = 96;
+  const X = (v) => x0 + (x1 - x0) * (v / 300);
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img',
+    'aria-label': 'Umbrales del contador de intentos fallidos: 9 y 15 se activan a tasas medibles, el 300 calibrado nunca se activa' });
+  box.appendChild(svg);
+  el('line', { x1: x0, y1: axisY, x2: x1, y2: axisY, stroke: css('--line'), 'stroke-width': 2 }, svg);
+  for (let v = 0; v <= 300; v += 50) {
+    el('line', { x1: X(v), y1: axisY - 4, x2: X(v), y2: axisY + 4, stroke: css('--line'), 'stroke-width': 1.5 }, svg);
+    const t = el('text', { x: X(v), y: axisY + 22, 'text-anchor': 'middle', 'font-size': 11, class: 'mono-t', fill: css('--muted') }, svg);
+    t.textContent = v;
+  }
+  const marks = [
+    { v: 9, label: 'límite 9 (f=0.15)', outcome: 'se activa ≈ 11–12×/ejec.', color: css('--accent'), dy: -72 },
+    { v: 15, label: 'límite 15 (f=0.25)', outcome: 'se activa ≈ 2×/ejec.', color: css('--accent'), dy: -34 },
+    { v: 300, label: 'max_trials calibrado = 300', outcome: 'nunca se activa — 0 en 320 ejec.', color: css('--status'), dy: -58 },
+  ];
+  for (const m of marks) {
+    const x = X(m.v);
+    el('line', { x1: x, y1: axisY - 12, x2: x, y2: axisY + 12, stroke: m.color, 'stroke-width': 2.5 }, svg);
+    const anchor = m.v > 250 ? 'end' : 'start';
+    const lx = m.v > 250 ? x - 8 : x + 8;
+    const t1 = el('text', { x: lx, y: axisY + m.dy, 'text-anchor': anchor, 'font-size': 12.5, 'font-weight': 600, fill: m.color }, svg);
+    t1.textContent = m.label;
+    const t2 = el('text', { x: lx, y: axisY + m.dy + 16, 'text-anchor': anchor, 'font-size': 11.5, class: 'mono-t', fill: css('--muted') }, svg);
+    t2.textContent = m.outcome;
+    if (m.v === 300) {
+      el('circle', { cx: x, cy: axisY, r: 12, fill: 'none', stroke: m.color, 'stroke-width': 1.5, class: 'pulse' }, svg);
+    }
+  }
+  const cap = el('text', { x: x0, y: axisY + 44, 'font-size': 11.5, fill: css('--muted') }, svg);
+  cap.textContent = 'valor del contador de intentos fallidos — los contadores se acumulan con el horizonte de 60 iteraciones, el límite se calibró con la dimensión de 20 activos';
+  // zonas sensibles al cursor
+  for (const m of marks) {
+    const x = X(m.v);
+    const hot = el('rect', { x: m.v > 250 ? x - 30 : x - 9, y: axisY - 60, width: m.v > 250 ? 32 : 18, height: 110, fill: 'transparent', style: 'cursor:default' }, svg);
+    hot.addEventListener('mousemove', (e) => showTip(
+      `<div class="t-h">${m.label}</div><div class="t-m">${m.outcome}</div>`, e.clientX, e.clientY));
+    hot.addEventListener('mouseleave', hideTip);
+  }
+}
+
+/* ─────────────────── dispersión del hallazgo (activaciones × sortino) ────────── */
+function drawScatter() {
+  const box = document.getElementById('scatter');
+  box.innerHTML = '';
+  const w = 940, h = 430, left = 64, right = 26, top = 26, bottom = 52;
+  const xMin = -0.6, xMax = 13.2, yMin = 1.9, yMax = 2.95;
+  const X = (v) => left + (w - left - right) * ((v - xMin) / (xMax - xMin));
+  const Y = (v) => top + (h - top - bottom) * (1 - (v - yMin) / (yMax - yMin));
+  const baseY = AGG.abc[0]; // 2.145
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img',
+    'aria-label': 'Dispersión del Sortino medio frente a las activaciones medias del explorador por ejecución para las siete configuraciones' });
+  box.appendChild(svg);
+  // región por encima de la línea base latente
+  el('rect', { x: left, y: top, width: w - left - right, height: Y(baseY) - top,
+    fill: css('--accent'), 'fill-opacity': 0.06 }, svg);
+  const tag = el('text', { x: left + 8, y: top + 18, 'text-anchor': 'start', 'font-size': 11.5,
+    'font-weight': 600, fill: css('--accent') }, svg);
+  tag.textContent = 'supera la línea base latente';
+  // cuadrícula
+  for (let g = 2.0; g <= 2.8; g += 0.2) {
+    el('line', { x1: left, y1: Y(g), x2: w - right, y2: Y(g), stroke: css('--line'), 'stroke-width': 1 }, svg);
+    const t = el('text', { x: left - 10, y: Y(g) + 4, 'text-anchor': 'end', 'font-size': 11, class: 'mono-t', fill: css('--muted') }, svg);
+    t.textContent = g.toFixed(1);
+  }
+  for (let g = 0; g <= 12; g += 2) {
+    el('line', { x1: X(g), y1: top, x2: X(g), y2: h - bottom, stroke: css('--line'), 'stroke-width': 1 }, svg);
+    const t = el('text', { x: X(g), y: h - bottom + 20, 'text-anchor': 'middle', 'font-size': 11, class: 'mono-t', fill: css('--muted') }, svg);
+    t.textContent = g;
+  }
+  const xlab = el('text', { x: left + (w - left - right) / 2, y: h - 10, 'text-anchor': 'middle', 'font-size': 12, fill: css('--muted') }, svg);
+  xlab.textContent = 'activaciones medias del explorador por ejecución';
+  const ylab = el('text', { x: 16, y: top + (h - top - bottom) / 2, 'text-anchor': 'middle', 'font-size': 12,
+    fill: css('--muted'), transform: `rotate(-90 16 ${top + (h - top - bottom) / 2})` }, svg);
+  ylab.textContent = 'Sortino medio por semilla (8 celdas)';
+  // línea base latente
+  el('line', { x1: left, y1: Y(baseY), x2: w - right, y2: Y(baseY), stroke: css('--series-base'),
+    'stroke-width': 1.6, 'stroke-dasharray': '6 5' }, svg);
+  const blab = el('text', { x: left + 6, y: Y(baseY) - 8, 'font-size': 11.5, class: 'mono-t', fill: css('--series-base') }, svg);
+  blab.textContent = `ABC original (latente): ${baseY.toFixed(3)}`;
+  // puntos: id, etiqueta, dx/dy/anchor de la etiqueta
+  const pts = [
+    { id: 'abc',    dx: 10, dy: 16, anchor: 'start' },
+    { id: 'frozen', dx: 10, dy: 4,  anchor: 'start' },
+    { id: 'ff25',   dx: 0,  dy: -12, anchor: 'middle' },
+    { id: 'ff25v1', dx: 8,  dy: 18, anchor: 'start' },
+    { id: 'ff15',   dx: -6, dy: -12, anchor: 'end' },
+    { id: 'mt9',    dx: 4,  dy: 20, anchor: 'end' },
+    { id: 'dir',    dx: -12, dy: 14, anchor: 'end' },
+  ];
+  for (const p of pts) {
+    const c = CFG_BY_ID[p.id];
+    const [sortino, , acts] = AGG[p.id];
+    const cx = X(acts), cy = Y(sortino);
+    if (c.role === 'winner') {
+      el('circle', { cx, cy, r: 9, fill: css('--accent') }, svg);
+      el('circle', { cx, cy, r: 15, fill: 'none', stroke: css('--accent'), 'stroke-width': 1.2, 'stroke-opacity': 0.5 }, svg);
+    } else if (c.role === 'base') {
+      el('circle', { cx, cy, r: 7, fill: css('--ground'), stroke: css('--series-base'), 'stroke-width': 2.5 }, svg);
+    } else {
+      el('circle', { cx, cy, r: 6, fill: css('--series-other'), 'fill-opacity': 0.8 }, svg);
+    }
+    const lab = el('text', { x: cx + p.dx, y: cy + p.dy, 'text-anchor': p.anchor, 'font-size': 11.5,
+      'font-weight': c.role === 'winner' ? 700 : 400,
+    fill: c.role === 'winner' ? css('--accent') : css(c.role === 'base' ? '--series-base' : '--muted') }, svg);
+    lab.textContent = c.role === 'winner'
+      ? `${c.name} — ${sortino.toFixed(3)} (+${(sortino - baseY).toFixed(2)})`
+      : c.name;
+    const hot = el('circle', { cx, cy, r: 18, fill: 'transparent', style: 'cursor:default' }, svg);
+    hot.addEventListener('mousemove', (e) => showTip(
+      `<div class="t-h">${c.name}</div>` +
+      `<div><span class="mono">${acts.toFixed(2)}</span> activaciones/ejec. · Sortino <span class="mono">${sortino.toFixed(3)}</span></div>` +
+      `<div class="t-m">fitness Ec. 18 <span class="mono">${AGG[p.id][1].toFixed(3)}</span></div>`,
+      e.clientX, e.clientY));
+    hot.addEventListener('mouseleave', hideTip);
+  }
+}
+
+/* ─────────────────────────── mapa de calor de activaciones ───────────────────── */
+function drawHeatmap() {
+  const box = document.getElementById('heatmap');
+  box.innerHTML = '';
+  const rowH = 34, left = 250, cellW = 150, top = 30;
+  const w = left + cellW * PERIODS.length + 16, h = top + rowH * CONFIGS.length + 8;
+  const maxV = 13.1;
+  const ramp = ['--ramp-0', '--ramp-1', '--ramp-2', '--ramp-3'];
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img',
+    'aria-label': 'Mapa de calor de activaciones medias del explorador por ejecución, por configuración y período' });
+  box.appendChild(svg);
+  PERIODS.forEach((p, j) => {
+    const t = el('text', { x: left + cellW * j + cellW / 2, y: 18, 'text-anchor': 'middle', 'font-size': 12, fill: css('--muted') }, svg);
+    t.textContent = PERIOD_SHORT[p];
+  });
+  CONFIGS.forEach((c, i) => {
+    const y = top + rowH * i;
+    const name = el('text', { x: left - 12, y: y + rowH / 2 + 4, 'text-anchor': 'end', 'font-size': 12.5,
+      fill: c.role === 'winner' ? css('--accent') : css('--ink'),
+      'font-weight': c.role === 'winner' ? 700 : 400 }, svg);
+    name.textContent = c.name;
+    ACTIVATIONS[c.id].forEach((v, j) => {
+      const x = left + cellW * j;
+      if (v === 0) {
+        el('rect', { x: x + 1, y: y + 2, width: cellW - 4, height: rowH - 6, rx: 5, fill: 'none',
+          stroke: css('--line'), 'stroke-dasharray': '4 4', class: 'hm', 'data-cfg': i, 'data-p': j }, svg);
+        const t = el('text', { x: x + cellW / 2, y: y + rowH / 2 + 4, 'text-anchor': 'middle', 'font-size': 11.5,
+          class: 'mono-t', fill: css('--muted'), 'pointer-events': 'none' }, svg);
+        t.textContent = 'latente';
+      } else {
+        const idx = Math.min(3, Math.floor((v / maxV) * 4));
+        el('rect', { x: x + 1, y: y + 2, width: cellW - 4, height: rowH - 6, rx: 5,
+          fill: css(ramp[idx]), class: 'hm', 'data-cfg': i, 'data-p': j }, svg);
+        const t = el('text', { x: x + cellW / 2, y: y + rowH / 2 + 4, 'text-anchor': 'middle', 'font-size': 12,
+          'font-weight': 600, class: 'mono-t', fill: idx >= 2 ? '#0d2530' : '#f8fafc', 'pointer-events': 'none' }, svg);
+        t.textContent = v.toFixed(1);
+      }
+    });
+  });
+  svg.addEventListener('mousemove', (e) => {
+    const r = e.target.closest('.hm');
+    if (!r) { hideTip(); return; }
+    const c = CONFIGS[+r.dataset.cfg], pi = +r.dataset.p;
+    const v = ACTIVATIONS[c.id][pi];
+    showTip(`<div class="t-h">${c.name}</div><div class="t-m">${PERIOD_SHORT[PERIODS[pi]]} · ambos universos</div>` +
+      `<div><span class="mono">${v.toFixed(1)}</span> activaciones del explorador por ejecución</div>`, e.clientX, e.clientY);
+  });
+  svg.addEventListener('mouseleave', hideTip);
+}
+
+/* ─────────────────────────── gráfico de puntos Sortino ───────────────────────── */
+let universe = 'fixed';
+function drawDotplot() {
+  const box = document.getElementById('dotplot');
+  box.innerHTML = '';
+  const data = SORTINO[universe];
+  const min = universe === 'fixed' ? 0 : -1, max = 6;
+  const left = 150, right = 30, rowH = 64, top = 26;
+  const w = 940, h = top + rowH * PERIODS.length + 30;
+  const X = (v) => left + (w - left - right) * ((v - min) / (max - min));
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img',
+    'aria-label': `Sortino medio por semilla por período, universo ${UNI_SHORT[universe]}` });
+  box.appendChild(svg);
+  for (let g = Math.ceil(min); g <= max; g++) {
+    el('line', { x1: X(g), y1: top - 8, x2: X(g), y2: h - 24, stroke: css('--line'), 'stroke-width': g === 0 ? 1.6 : 1 }, svg);
+    const t = el('text', { x: X(g), y: h - 8, 'text-anchor': 'middle', 'font-size': 11, class: 'mono-t', fill: css('--muted') }, svg);
+    t.textContent = g;
+  }
+  PERIODS.forEach((p, i) => {
+    const y = top + rowH * i + rowH / 2;
+    const pl = el('text', { x: 4, y: y - 12, 'font-size': 12.5, fill: css('--muted') }, svg);
+    pl.textContent = PERIOD_SHORT[p];
+    const base = data.abc[i], win = data.dir[i];
+    el('line', { x1: X(base), y1: y, x2: X(win), y2: y, stroke: css('--accent'), 'stroke-width': 2, opacity: 0.45 }, svg);
+    CONFIGS.forEach((c, ci) => {
+      if (c.role !== 'other') return;
+      el('circle', { cx: X(data[c.id][i]), cy: y, r: 5.5, fill: css('--series-other'), opacity: 0.7,
+        class: 'dp', 'data-cfg': ci, 'data-p': i }, svg);
+    });
+    el('circle', { cx: X(base), cy: y, r: 7, fill: css('--ground'), stroke: css('--series-base'), 'stroke-width': 2.5,
+      class: 'dp', 'data-cfg': 0, 'data-p': i }, svg);
+    el('circle', { cx: X(win), cy: y, r: 8, fill: css('--accent'),
+      class: 'dp', 'data-cfg': 6, 'data-p': i }, svg);
+    const dv = win - base;
+    const wt = el('text', { x: X(win), y: y - 14, 'text-anchor': 'middle', 'font-size': 11.5, 'font-weight': 700,
+      class: 'mono-t', fill: css('--accent') }, svg);
+    wt.textContent = `${win.toFixed(2)} (${dv >= 0 ? '+' : ''}${dv.toFixed(2)})`;
+    const bt = el('text', { x: X(base), y: y + 24, 'text-anchor': 'middle', 'font-size': 10.5, class: 'mono-t', fill: css('--muted') }, svg);
+    bt.textContent = `ABC ${base.toFixed(2)}`;
+  });
+  svg.addEventListener('mousemove', (e) => {
+    const t = e.target.closest('.dp');
+    if (!t) { hideTip(); return; }
+    const c = CONFIGS[+t.dataset.cfg], pi = +t.dataset.p;
+    const v = SORTINO[universe][c.id][pi];
+    showTip(`<div class="t-h">${c.name}</div><div class="t-m">${PERIOD_SHORT[PERIODS[pi]]} · universo ${UNI_SHORT[universe]}</div>` +
+      `<div>Sortino medio por semilla <span class="mono">${v.toFixed(3)}</span></div>`, e.clientX, e.clientY);
+  });
+  svg.addEventListener('mouseleave', hideTip);
+}
+document.getElementById('u-fixed').addEventListener('click', function () {
+  universe = 'fixed';
+  this.setAttribute('aria-pressed', 'true');
+  document.getElementById('u-dyn').setAttribute('aria-pressed', 'false');
+  drawDotplot();
+});
+document.getElementById('u-dyn').addEventListener('click', function () {
+  universe = 'dynamic';
+  this.setAttribute('aria-pressed', 'true');
+  document.getElementById('u-fixed').setAttribute('aria-pressed', 'false');
+  drawDotplot();
+});
+
+/* ─────────────────── mapa de p-valores de Wilcoxon (6 configs × 8 celdas) ────── */
+function drawPmap() {
+  const box = document.getElementById('pmap');
+  box.innerHTML = '';
+  const order = ['dir', 'frozen', 'mt9', 'ff25', 'ff25v1', 'ff15'];
+  const left = 236, top = 52, cell = 34, gap = 4, groupGap = 18;
+  const colX = (k) => left + (k % 4) * (cell + gap) + Math.floor(k / 4) * (4 * (cell + gap) + groupGap);
+  const w = colX(7) + cell + 100, h = top + order.length * (cell + gap) + 8;
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img',
+    'aria-label': 'Mapa de p-valores de Wilcoxon emparejado frente a ABC original, seis configuraciones por ocho celdas régimen–universo' });
+  box.appendChild(svg);
+  // encabezados de grupo + período
+  ['Fijo', 'Dinámico'].forEach((u, gi) => {
+    const gx = left + gi * (4 * (cell + gap) + groupGap);
+    const t = el('text', { x: gx + (4 * (cell + gap) - gap) / 2, y: 14, 'text-anchor': 'middle', 'font-size': 11,
+      'font-weight': 700, fill: css('--muted'), 'letter-spacing': '0.08em' }, svg);
+    t.textContent = u.toUpperCase();
+    PERIODS.forEach((p, pi) => {
+      const pt = el('text', { x: colX(gi * 4 + pi) + cell / 2, y: 30, 'text-anchor': 'middle', 'font-size': 9.5, fill: css('--muted') }, svg);
+      pt.textContent = PERIOD_SHORT[p].split(' ')[0];
+    });
+  });
+  const fmtP = (p) => p === 0 ? '<0.0001' : p.toFixed(4);
+  order.forEach((id, ri) => {
+    const c = CFG_BY_ID[id];
+    const y = top + ri * (cell + gap);
+    const name = el('text', { x: left - 12, y: y + cell / 2 + 4, 'text-anchor': 'end', 'font-size': 12,
+      fill: c.role === 'winner' ? css('--accent') : css('--ink'),
+      'font-weight': c.role === 'winner' ? 700 : 400 }, svg);
+    name.textContent = c.name;
+    WILCOXON[id].forEach(([p, sig, holm, inFavor], k) => {
+      const x = colX(k);
+      let fill = css('--panel-2'), opacity = 1;
+      if (sig) {
+        const t = Math.min(1, -Math.log10(Math.max(p, 1e-4)) / 4); // 1 en p≤1e-4
+        opacity = 0.35 + 0.65 * t;
+        fill = inFavor ? css('--accent') : css('--status');
+      }
+      el('rect', { x, y, width: cell, height: cell, rx: 6, fill, 'fill-opacity': opacity,
+        class: 'pm', 'data-cfg': id, 'data-cell': k, style: 'cursor:default' }, svg);
+      if (holm) {
+        el('rect', { x: x + 1.5, y: y + 1.5, width: cell - 3, height: cell - 3, rx: 5, fill: 'none',
+          stroke: css('--ink'), 'stroke-width': 1.8, 'pointer-events': 'none' }, svg);
+      }
+      const pt = el('text', { x: x + cell / 2, y: y + cell / 2 + 3.5, 'text-anchor': 'middle', 'font-size': 8.5,
+        class: 'mono-t', fill: sig ? 'rgba(13,37,48,0.9)' : css('--muted'), 'pointer-events': 'none' }, svg);
+      pt.textContent = sig ? (p < 0.0005 ? '≪.001' : String(p.toFixed(3)).slice(1)) : 'n.s.';
+    });
+    // resumen de fila
+    const holmFavor = WILCOXON[id].filter(([, s, hm, f]) => s && hm && f).length;
+    const holmAgainst = WILCOXON[id].filter(([, s, hm, f]) => s && hm && !f).length;
+    const st = el('text', { x: colX(7) + cell + 12, y: y + cell / 2 + 4, 'font-size': 11, class: 'mono-t',
+      fill: c.role === 'winner' ? css('--accent') : css('--muted'),
+      'font-weight': c.role === 'winner' ? 700 : 400 }, svg);
+    st.textContent = `Holm ${holmFavor}↑ ${holmAgainst}↓`;
+  });
+  svg.addEventListener('mousemove', (e) => {
+    const r = e.target.closest('.pm');
+    if (!r) { hideTip(); return; }
+    const id = r.dataset.cfg, k = +r.dataset.cell;
+    const c = CFG_BY_ID[id];
+    const [p, sig, holm, inFavor] = WILCOXON[id][k];
+    const uni = k < 4 ? 'fixed' : 'dynamic';
+    const period = PERIODS[k % 4];
+    const superiorName = !sig ? '—' : inFavor ? c.name : 'ABC original';
+    showTip(`<div class="t-h">${c.name}</div>` +
+      `<div class="t-m">${PERIOD_SHORT[period]} · universo ${UNI_SHORT[uni]}</div>` +
+      `<div>Wilcoxon p = <span class="mono">${fmtP(p)}</span>${sig ? '' : ' (n.s.)'}</div>` +
+      `<div class="t-m">desempeño superior: ${superiorName}${holm ? ' · conserva significancia tras Holm' : ''}</div>`,
+      e.clientX, e.clientY);
+  });
+  svg.addEventListener('mouseleave', hideTip);
+}
+
+/* ───────────────────────────── medidores lineales DSR ───────────────────────── */
+(function gauges() {
+  const box = document.getElementById('gauges');
+  const universes = [
+    ['fixed', 'Universo fijo'],
+    ['dynamic', 'Universo dinámico'],
+  ];
+  for (const [uni, label] of universes) {
+    const values = DSR.filter(([u]) => u === uni);
+    const passed = values.filter(([, , dsr]) => dsr >= 0.95).length;
+    const group = document.createElement('div');
+    group.className = 'dsr-group';
+    group.innerHTML =
+      `<div class="dsr-group-head">` +
+      `<span class="dsr-group-title">${label}</span>` +
+      `<span class="dsr-group-summary"><span class="mono">${passed}/4</span> sobre el umbral</span>` +
+      `</div>`;
+
+    for (const [, p, dsr, sharpe, n] of values) {
+      const pass = dsr >= 0.95;
+      const pct = Math.min(100, Math.max(0, dsr * 100));
+      const div = document.createElement('div');
+      div.className = 'gauge ' + (pass ? 'pass' : 'below');
+      div.innerHTML =
+        `<div>` +
+        `<div class="g-k">${PERIOD_SHORT[p]}</div>` +
+        `<div class="g-meta">SR diario ${sharpe.toFixed(3)} · n=${n}</div>` +
+        `</div>` +
+        `<div class="g-bullet">` +
+        `<div class="g-scale" role="img" aria-label="${label}, ${PERIOD_SHORT[p]}: Sharpe deflactado ${dsr.toFixed(3)}; umbral 0.95">` +
+        `<span class="g-fill" style="width:${pct.toFixed(1)}%"></span>` +
+        `<span class="g-threshold" aria-hidden="true"></span>` +
+        `<span class="g-dot" style="left:${pct.toFixed(1)}%" aria-hidden="true"></span>` +
+        `</div>` +
+        `<div class="g-axis"><span>0.00</span><span>1.00</span></div>` +
+        `</div>` +
+        `<div class="g-result">` +
+        `<span class="g-v">${dsr.toFixed(3)}</span>` +
+        `<span class="g-status">${pass ? 'supera el umbral' : 'bajo el umbral'}</span>` +
+        `</div>`;
+      group.appendChild(div);
+    }
+    box.appendChild(group);
+  }
+})();
+
+/* ─────────────────────────────── vista de tabla ─────────────────────────────── */
+(function table() {
+  const t = document.getElementById('agg-table');
+  const rows = [...CONFIGS].sort((x, y) => AGG[y.id][0] - AGG[x.id][0]).map(c => {
+    const [s, f, a] = AGG[c.id];
+    return `<tr><td>${c.name}</td><td>${s.toFixed(3)}</td><td>${f.toFixed(3)}</td><td>${a.toFixed(2)}</td></tr>`;
+  }).join('');
+  t.innerHTML = '<thead><tr><th>configuración</th><th>Sortino medio</th><th>fitness medio Ec. 18</th><th>activaciones/ejec.</th></tr></thead>' +
+    `<tbody>${rows}</tbody>`;
+})();
+
+/* ─────────────────────────────── dibujo inicial ─────────────────────────────── */
+drawLadder(); drawScatter(); drawHeatmap(); drawDotplot(); drawPmap();
+})();
+</script>
+</body>
+</html>

@@ -5,6 +5,12 @@
 > Dirichlet. Las cifras de activación y desempeño se obtienen mediante ejecuciones
 > reproducibles sobre los datos y las convenciones metodológicas de la tesis. Los
 > resultados, parámetros y conclusiones del cuerpo principal permanecen inalterados.
+>
+> Esta es una versión extendida del Anexo A de la tesis aprobada. Las secciones A.1 a
+> A.4 desarrollan el diagnóstico de activación incluido en la tesis; las secciones A.5
+> en adelante (geometría del muestreo, reinicio de Dirichlet y límites de concentración)
+> corresponden a trabajo exploratorio posterior a la aprobación, realizado por Norbey
+> Pidiache.
 
 ## A.1. Motivación y alcance de la mejora incremental
 
@@ -75,7 +81,7 @@ régimen–universo.
 
 | Configuración | Sortino medio |
 | --- | ---: |
-| Reinicio de Dirichlet élite f=0.15 *(extensión; sección A.6)* | **2.870** |
+| Reinicio de Dirichlet élite f=0.15 *(posterior a la tesis, sin límite de concentración; ver A.6–A.7)* | **2.870** |
 | ABC original | 2.145 |
 | ABC-GSA con umbral canónico (inactivo) | 1.975 |
 | ABC-FAEM activo mt=9 | 1.964 |

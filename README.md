@@ -20,6 +20,12 @@
 
 `hive_abc` formalizes the thesis *"Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony"* by **Norbey Pidiache & Luisa Ovalle**, approved for the **Magíster en Finanzas at Universidad Externado de Colombia** (2026): four ABC-family metaheuristics optimize NASDAQ-100 portfolios under a multi-objective utility (return − CVaR − L1 − cardinality) across four volatility regimes — the COVID-19 crash, the 2008 Global Financial Crisis, the 2022 geopolitical shock, and the 2023–2024 stability window — against classical minimum-variance and 1/N benchmarks.
 
+> [!NOTE]
+> **Two scopes live in this repository.**
+>
+> - **Approved thesis (v1.0)** — the joint work of both authors: frozen results, reproducible exactly as presented and defended.
+> - **Post-thesis research (in progress)** — extensions by Norbey Pidiache after the thesis was approved: a redesigned scout operator, concentration limits, and a calibration framework. These results are exploratory, in-sample, and not part of the approved work; see [Post-thesis research](#post-thesis-research-exploratory).
+
 The repository is built on four properties:
 
 - **Frozen results** — the approved thesis numbers live in [`data/canonical/thesis_results_v1.json`](data/canonical/thesis_results_v1.json) and are guarded by a three-tier regression suite; code evolves, results do not.
@@ -34,6 +40,7 @@ The repository is built on four properties:
 - [Canonical results](#canonical-results)
 - [Reproducing the thesis](#reproducing-the-thesis)
 - [Supplementary analyses](#supplementary-analyses)
+- [Post-thesis research (exploratory)](#post-thesis-research-exploratory)
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
 - [Usage](#usage)
@@ -135,6 +142,23 @@ Annex-ready analyses that complement the thesis document:
 | Selection filter | [`filter_comparison.md`](docs/analysis/filter_comparison.md) | The z-score filter is a crisis-defense mechanism: +2.35/+0.57 Sortino in COVID/GFC, −1.37/−0.45 in calm regimes |
 | Execution times | [`reproduction_report.md`](docs/analysis/reproduction_report.md) | Execution-times table per model × configuration |
 
+## Post-thesis research (exploratory)
+
+> [!IMPORTANT]
+> <font color="#ff6b6b">**NOT PART OF THE APPROVED THESIS**</font>
+> Work by Norbey Pidiache after the thesis was approved. Results are exploratory and in-sample; they do not modify or reinterpret the frozen thesis results, which remain exactly as presented.
+
+The approved thesis (Annex A of the [PDF](thesis/Maestria_en_Finanzas_ABC.pdf)) already reports that the scout phase does not activate under the calibrated configuration, and that inducing it does not improve on the original ABC; it lists simplex-native recovery operators as future work. This research picks up from there: can the scout be redesigned so that activating it helps, and would the result hold up in practice?
+
+| Topic | Deliverable | Status |
+| --- | --- | --- |
+| Extended annex (Spanish) | [`anexo_activacion_scout.md`](docs/analysis/anexo_activacion_scout.md) | Sections A.1–A.4 expand the thesis's activation diagnostic; A.5 onward (sampling geometry, Dirichlet redesign, concentration limits) is post-thesis |
+| Scout telemetry | [`scout_activation_telemetry.md`](docs/analysis/scout_activation_telemetry.md) · [interactive](docs/analysis/scout-telemetry-viz.html) | Activation counts per run; a simplex-native Dirichlet restart improves in-sample results |
+| Concentration control | [`scout_concentration_analysis.md`](docs/analysis/scout_concentration_analysis.md) | Most of the in-sample gain came from portfolio concentration; under a 20% weight cap a smaller gain remains |
+| Out-of-sample validation | Planned | Walk-forward with point-in-time membership, rebalancing, and transaction costs; preliminary checks are not yet conclusive |
+
+The supporting code (`ABCAdaptiveScout`, `hive_abc.algorithms.scouting`, `hive_abc.calibration`) is additive: it never changes the default models or the frozen results.
+
 ## Project structure
 
 ```
@@ -205,6 +229,7 @@ print(outcome.models["ABC_FA_Scout"].sortino)
 ## Roadmap
 
 - **v1.x (academic)** — the thesis formalization: frozen results, analysis annexes, reproduction suite. *This release.*
+- **Post-thesis research (in progress)** — scout-mechanism diagnostics and redesign, concentration limits, and out-of-sample validation. See [Post-thesis research](#post-thesis-research-exploratory).
 - **v2 (heuristic portfolio optimizer)** — additional metaheuristics (PSO, GA, simulated annealing) behind the same `HeuristicOptimizer` contract; rebalancing backtests; a strategy-comparison CLI. The `core/` seam exists so none of this touches the frozen v1 surface.
 
 ## Contributing

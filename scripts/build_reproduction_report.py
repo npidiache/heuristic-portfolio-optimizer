@@ -3,7 +3,7 @@
 Reads `outputs/reproduction/reproduction_summary.json` (produced by
 `run_reproduction.py`) and the canonical thesis results, and writes
 `docs/analysis/reproduction_report.md` and `.html` — including the
-execution-times table that resolves reviewer task 14.
+execution-times table.
 """
 
 # --------------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ def comparison_frame(
 
 
 def cardinality_table(summary: dict[str, Any]) -> pd.DataFrame:
-    """Holdings count per model x configuration (reviewer comment 11)."""
+    """Holdings count per model x configuration."""
     records = []
     for label, payload in summary["runs"].items():
         for row in payload["cardinality"]:
@@ -89,8 +89,8 @@ def cardinality_table(summary: dict[str, Any]) -> pd.DataFrame:
 
 def wilcoxon_section(summary: dict[str, Any]) -> pd.DataFrame:
     """
-    Pairwise Wilcoxon tests on per-seed Sortino for every configuration
-    (reviewer comment 10), replicating the thesis's significance analysis.
+     Pairwise Wilcoxon tests on per-seed Sortino for every configuration
+    , replicating the thesis's significance analysis.
     """
     from hive_abc.metrics.stats import wilcoxon_sortino_matrix
 
@@ -106,7 +106,7 @@ def wilcoxon_section(summary: dict[str, Any]) -> pd.DataFrame:
 
 
 def runtime_table(summary: dict[str, Any]) -> pd.DataFrame:
-    """Execution-time table across all configurations (task 14)."""
+    """Execution-time table across all configurations."""
     records = []
     for label, payload in summary["runs"].items():
         for model, stats in payload["runtime_seconds"].items():
@@ -200,7 +200,7 @@ def main() -> None:
 
     cardinalities = with_display_names(cardinality_table(summary))
     md += [
-        "## Portfolio cardinality (reviewer comment 11)",
+        "## Portfolio cardinality",
         "",
         "Number of significant holdings (weight > 0.5%) of each best-of-seeds"
         " portfolio:",
@@ -215,7 +215,7 @@ def main() -> None:
     wilcoxon_frame = wilcoxon_section(summary)
     significant_share = float(wilcoxon_frame["significant"].mean())
     md += [
-        "## Wilcoxon significance on per-seed Sortino (reviewer comment 10)",
+        "## Wilcoxon significance on per-seed Sortino",
         "",
         "Pairwise signed-rank tests over the 20 per-seed Sortino samples of"
         " each configuration (the thesis's significance methodology)."
@@ -235,7 +235,7 @@ def main() -> None:
 
     runtimes = with_display_names(runtime_table(summary))
     md += [
-        "## Execution times (reviewer task 14)",
+        "## Execution times",
         "",
         "Mean seconds per optimizer run (one seed), per configuration:",
         "",
@@ -245,7 +245,7 @@ def main() -> None:
         " solve replicated across seeds.",
         "",
     ]
-    html_sections.append(("Execution times (task 14)", frame_to_html(runtimes)))
+    html_sections.append(("Execution times", frame_to_html(runtimes)))
 
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
     (DOCS_DIR / "reproduction_report.md").write_text("\n".join(md), encoding="utf-8")

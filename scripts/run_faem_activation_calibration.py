@@ -203,9 +203,7 @@ def deltas_vs_references(frame: pd.DataFrame) -> pd.DataFrame:
     abc = reference_sortino(frame, "ABC original")
     active["delta_vs_frozen_faem"] = active.set_index(key_columns).index.map(frozen)
     active["delta_vs_abc_original"] = active.set_index(key_columns).index.map(abc)
-    active["delta_vs_frozen_faem"] = (
-        active["sortino"] - active["delta_vs_frozen_faem"]
-    )
+    active["delta_vs_frozen_faem"] = active["sortino"] - active["delta_vs_frozen_faem"]
     active["delta_vs_abc_original"] = (
         active["sortino"] - active["delta_vs_abc_original"]
     )

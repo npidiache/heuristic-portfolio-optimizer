@@ -177,7 +177,8 @@ significancia tras el control por comparaciones múltiples en todas las celdas, 
 que la evidencia *absoluta* de desempeño distinguible del azar se establece
 específicamente en las celdas de COVID-19 y estabilidad.
 
-**Cuadro A.4. Sharpe deflactado del mejor portafolio de Dirichlet élite.**
+**Cuadro A.4. Sharpe deflactado del mejor portafolio de Dirichlet élite (variante sin
+restricción de concentración).**
 
 | Régimen | Universo fijo | Universo dinámico |
 | --- | ---: | ---: |
@@ -188,18 +189,104 @@ específicamente en las celdas de COVID-19 y estabilidad.
 
 *Nota.* Los valores en negrita alcanzan el umbral de referencia DSR ≥ 0.95.
 
-## A.7. Un procedimiento generalizable de diagnóstico y rediseño
+Estas cifras, sin embargo, exigen un examen del perfil de concentración de los portafolios
+obtenidos. La sección A.7 aborda ese examen y conduce a una revisión sustantiva de la
+magnitud del efecto atribuible al operador.
+
+## A.7. Robustez del operador bajo límites de concentración
+
+El desempeño superior documentado en la sección A.6 requiere verificar *cómo* se obtiene.
+El Cuadro A.5 compara el perfil de concentración de los portafolios finales del ABC
+original y del reinicio de Dirichlet en el universo de fundamentales.
+
+**Cuadro A.5. Concentración de los portafolios finales (promedio de 20 semillas,
+universo de fundamentales).**
+
+| Régimen | Modelo | Posiciones &gt;1 % | Cardinalidad efectiva | Peso máximo |
+| --- | --- | ---: | ---: | ---: |
+| COVID-19 | ABC original | 8.8 | 6.0 | 23 % |
+| | Dirichlet | 4.4 | **2.1** | **68 %** |
+| Crisis 2007–09 | ABC original | 6.9 | 5.4 | 23 % |
+| | Dirichlet | 3.1 | **2.2** | **60 %** |
+| Guerra 2022 | ABC original | 9.5 | 7.4 | 17 % |
+| | Dirichlet | 5.1 | **2.6** | **55 %** |
+| Estabilidad | ABC original | 9.0 | 6.6 | 21 % |
+| | Dirichlet | 4.9 | **2.1** | **65 %** |
+
+Los portafolios del operador no son más equilibrados que los del ABC original: son
+sustancialmente **más concentrados**. Una cardinalidad efectiva cercana a 2 y un peso
+máximo superior al 55 % describen una posición concentrada en uno o dos activos, no una
+cartera diversificada.
+
+Este comportamiento tiene una explicación directa. La Ec. 18 está orientada a controlar el
+exceso de diversificación —penaliza más de diez posiciones significativas, en línea con su
+propósito de diseño— y, dentro del contexto original de la tesis, no requiere un límite de
+concentración adicional: los algoritmos evaluados operan en el espacio de caja y sus
+candidatos no superan pesos máximos cercanos al 20 %. El operador de Dirichlet, en cambio,
+posee un **alcance exploratorio mayor**: accede a portafolios concentrados que la búsqueda
+original no visita, y lo hace optimizando correctamente la función objetivo (de hecho
+alcanza mejores valores que el ABC original). Una comparación rigurosa entre ambos exige,
+por tanto, incorporar un límite de concentración del tipo empleado habitualmente en
+mandatos institucionales, de manera que los dos algoritmos compitan sobre el mismo
+conjunto de portafolios admisibles.
+
+Para determinar si la ventaja del operador subsiste bajo dicho límite se evaluaron dos
+restricciones, aplicadas por igual a ambos modelos y bajo semillas pareadas idénticas:
+
+1. **Piso de cardinalidad (mínimo cinco posiciones significativas).** Se añadió el término
+   simétrico `λ_card · max(0, 5 − posiciones)²`. La restricción resultó **insuficiente**:
+   el operador la satisface manteniendo un peso máximo del 56 % y una cardinalidad efectiva
+   de 2.6, es decir, cinco posiciones nominales de las cuales una concentra más de la
+   mitad del capital. Contar posiciones por encima de un umbral no controla la magnitud de
+   los pesos.
+2. **Tope duro de peso máximo (20 %).** Se impuso mediante proyección de los pesos
+   normalizados sobre el símplex acotado, garantizando que todo portafolio evaluado cumple
+   la restricción; con veinte activos, el tope implica al menos cinco posiciones
+   materialmente relevantes. Esta es la restricción que efectivamente controla la
+   concentración.
+
+**Cuadro A.6. Efecto de las restricciones de concentración sobre la ventaja del operador.**
+
+| Escenario | Dirichlet | ABC original | Diferencia | Card. efectiva | Peso máximo | Celdas favorables tras Holm |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Sin restricción | 2.870 | 2.145 | +0.726 | 2.4 | 59 % | 8 de 8 |
+| Piso de cinco posiciones | 2.832 | 2.145 | +0.687 | 2.6 | 56 % | 8 de 8 |
+| **Tope duro de 20 %** | **2.387** | **2.102** | **+0.285** | **5.6** | **20 %** | **7 de 8** |
+
+*Nota.* Sortino medio por semilla, agregado sobre las ocho celdas régimen–universo. El
+tope de 20 % también actúa sobre el ABC original —su peso máximo desciende de 0.20 a
+0.18—, por lo que la comparación conserva condiciones idénticas.
+
+La lectura correcta de estos resultados es doble. Por una parte, **aproximadamente el 60 %
+de la ventaja inicial era atribuible a la concentración**: la diferencia de +0.726 se
+reduce a +0.285 al acotar el peso máximo. Por otra, **la ventaja restante es robusta**: con
+la concentración efectivamente controlada (cardinalidad efectiva 5.6 y peso máximo 20 %),
+el operador conserva una mejora de +0.285 en el Sortino medio, favorable en las ocho celdas
+y estadísticamente significativa tras la corrección de Holm en siete de ellas, sin ninguna
+celda desfavorable. En la crisis financiera global del universo dinámico, el operador
+reduce el Sortino negativo del ABC original (−0.292) prácticamente a cero (−0.007).
+
+En consecuencia, la contribución defendible del operador no es la magnitud inicialmente
+observada, sino una mejora de búsqueda que **subsiste bajo una restricción de concentración
+de tipo institucional**. El ejercicio deja además una recomendación práctica: los
+operadores con mayor alcance exploratorio deben acompañarse de un límite explícito de
+concentración —como es habitual en mandatos institucionales—, de manera que la ganancia de
+búsqueda se materialice dentro del perfil de diversificación deseado por el gestor.
+
+## A.8. Un procedimiento generalizable de diagnóstico y rediseño
 
 El aporte de esta línea no es un movimiento de recuperación en particular, sino un
 **procedimiento** aplicable a cualquier mecanismo explorador: registrar su activación
 como una variable observable, emplear un umbral proporcional al horizonte, medir su
-efecto mediante estadística pareada y, cuando la geometría del espacio de soluciones
-condicione el valor de la recuperación, rediseñar el movimiento para respetarla. El
-reinicio de Dirichlet constituye la aplicación de este procedimiento al problema
-*long-only*. En este sentido, la extensión generaliza el trabajo de la tesis sin
-reemplazar sus resultados principales.
+efecto mediante estadística pareada, rediseñar el movimiento cuando la geometría del
+espacio de soluciones condicione el valor de la recuperación y —como muestra la sección
+A.7— **verificar la robustez de la mejora bajo límites de concentración**, de modo que la
+ganancia atribuida al operador se sostenga dentro del perfil de portafolio deseado. El
+reinicio de Dirichlet constituye la
+aplicación de este procedimiento al problema *long-only*. En este sentido, la extensión
+generaliza el trabajo de la tesis sin reemplazar sus resultados principales.
 
-## A.8. Relación con la literatura
+## A.9. Relación con la literatura
 
 El fenómeno de un operador explorador inactivo bajo la calibración empleada no es
 exclusivo de este trabajo. Bullinaria y AlYahya (2014) observaron empíricamente que, con
@@ -221,24 +308,27 @@ metaheurística. La combinación específica —disparador por estancamiento, mu
 al símplex y condicionamiento a la media élite dentro del ABC— no aparece documentada en la
 revisión realizada, lo que sugiere una línea de investigación abierta.
 
-## A.9. Alcance, limitaciones y trabajo futuro
+## A.10. Alcance, limitaciones y trabajo futuro
 
 Los resultados de este anexo corresponden a un **diagnóstico exploratorio
 complementario**. La interpretación debe considerar tres limitaciones: (i) la evaluación
 se realiza dentro de muestra y sobre las mismas ventanas del estudio; (ii) las
 configuraciones activadas emplean valores predeterminados sin una calibración específica;
 y (iii) el Sharpe deflactado se calcula frente a las configuraciones examinadas, no frente
-al espacio completo de diseño. Además, las cifras emplean el Sortino medio por semilla,
-necesario para las pruebas pareadas, que difiere del criterio *best-of-seeds* reportado en
-las tablas del cuerpo principal.
+al espacio completo de diseño, y corresponde a la variante sin restricción de
+concentración. Además, las cifras emplean el Sortino medio por semilla, necesario para las
+pruebas pareadas, que difiere del criterio *best-of-seeds* reportado en las tablas del
+cuerpo principal.
 
 El paso confirmatorio natural es una validación *walk-forward* fuera de muestra sobre el
-panel histórico completo, con calibración dedicada del parámetro de concentración y del
-umbral de activación, incorporación de costos de transacción y universos de mayor tamaño.
-Este programa excede el alcance del trabajo de grado y se plantea como línea futura. La
-limitación identificada en el mecanismo explorador queda así documentada, medida y
-explicada, y se traduce en un diseño reproducible que abre una vía concreta de mejora para
-la familia de algoritmos propuesta.
+panel histórico completo, tomando como hipótesis la formulación depurada en la sección
+A.7 —el reinicio de Dirichlet con tope de concentración del 20 %— e incorporando
+calibración dedicada del parámetro de concentración y del umbral de activación, costos de
+transacción y universos de mayor tamaño. Este programa excede el alcance del trabajo de
+grado y se plantea como línea futura. La limitación identificada en el mecanismo explorador
+queda así documentada, medida y explicada, y se traduce en un diseño reproducible cuyo
+efecto ha sido cuantificado y depurado de su componente de concentración, lo que abre una
+vía concreta de mejora para la familia de algoritmos propuesta.
 
 ## Referencias
 

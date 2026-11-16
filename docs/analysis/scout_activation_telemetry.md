@@ -1,8 +1,8 @@
-# Scout-activation telemetry diagnostic (reviewer task 9 follow-up)
+# Scout-activation telemetry diagnostic
 
 Generated 2026-07-20 by `scripts/run_scout_activation_telemetry.py` (20 paired seeds per configuration, identical seeds across configurations; both universes, all four thesis periods).
 
-Reviewer comment 9 established that the thesis's FAEM scout never activates under the calibrated configuration, and [`pfa_sensitivity.md`](pfa_sensitivity.md) §5 committed to a future line: study when elite-guided recovery is worth activating. This diagnostic is the first result of that line, built on two v2 additions (branch `feat/abc-scout-v2`):
+The PFA sensitivity analysis established that the thesis's FAEM scout never activates under the calibrated configuration, and [`pfa_sensitivity.md`](pfa_sensitivity.md) §5 committed to a future line: study when elite-guided recovery is worth activating. This diagnostic is the first result of that line, built on two v2 additions (branch `feat/abc-scout-v2`):
 
 - **First-class activation telemetry** (commit `21e7042`): every `optimize()` run reports `scout_activations` and `scout_activation_iterations` on `OptimizationResult`, so activation is now measured, not inferred.
 - **`ABCAdaptiveScout`** (commit `c10387a`): a pluggable scout phase — a `ScoutTrigger` decides *who* scouts (budget-proportional trial limits, diversity collapse) and a `ScoutMove` decides *where* the scout goes (corrected-scaling firefly elite move, Lévy flights, Dirichlet elite restarts, canonical random restart). The corrected firefly move normalizes the attraction distance by `sqrt(dim)` — at thesis dimensionality the v1 attraction `exp(-γ·r²)` is ≈ 0.01 at typical inter-bee distances, i.e. the elite move degenerated to noise; normalized, it retains ≈ 0.85 attraction at the same distance. v1 classes are byte-stable (Tier-1/2/3 guards green).
@@ -25,7 +25,7 @@ Mean scout activations per run (both universes):
 | Adaptive FF f=0.15               |         11.7 |            10.7 |       10.1 |             10.7 |
 | Adaptive Dirichlet f=0.15        |         12.3 |            13.1 |       10.9 |             12.3 |
 
-ABC original and frozen ABC-FAEM confirm reviewer task 9 exactly: **zero activations in every canonical-configuration cell** — the proposed recovery mechanics never execute. The proportional triggers make the scout phase operational at a controlled, budget-scaled rate instead of the unreachable `max_trials = 0.6 × bees × assets = 300`.
+ABC original and frozen ABC-FAEM confirm the PFA sensitivity finding exactly: **zero activations in every canonical-configuration cell** — the proposed recovery mechanics never execute. The proportional triggers make the scout phase operational at a controlled, budget-scaled rate instead of the unreachable `max_trials = 0.6 × bees × assets = 300`.
 
 ## 2. Effect on the headline metric
 
@@ -158,7 +158,7 @@ Three structural observations stand alongside the numbers. First, activation wit
 
 - **Mean per-seed Sortino** — the thesis's headline risk-adjusted metric, computed with the frozen conventions (daily simple returns of the window, annualized); per-seed means support paired tests, unlike best-of-seeds alone.
 - **Eq. 18 fitness** — the executed objective (`wᵀμ − 0.7·CVaR₀.₉₉ − η‖w‖₁ − λ_card·card`), the optimizer's own currency; separates search quality from financial outcome.
-- **Scout activations per run** — the new telemetry; the quantity reviewer task 9 could only tabulate indirectly is now a first-class run diagnostic.
+- **Scout activations per run** — the new telemetry; the quantity the PFA sensitivity analysis could only tabulate indirectly is now a first-class run diagnostic.
 - **Wilcoxon signed-rank (paired seeds)** — the thesis's own significance methodology (comment 10). Holm–Bonferroni and the deflated Sharpe ratio (`hive_abc.metrics`, SG-3) are applied in §4; the SG-5 walk-forward study remains the confirmatory gate.
 - Max drawdown / Jensen α / Omega are deliberately deferred to the calibrated study — the full canonical metric set belongs with the engine-integrated comparison, not this direct-run diagnostic.
 
@@ -166,8 +166,8 @@ Three structural observations stand alongside the numbers. First, activation wit
 
 **Yes — add a short activation-analysis subsection, but as an annex extension, not a results-chapter change.** Concretely:
 
-1. Keep the frozen results and their conclusions exactly as they are (the calibration legitimately preferred pure exploitation at these horizons; task 9's defense stands).
+1. Keep the frozen results and their conclusions exactly as they are (the calibration legitimately preferred pure exploitation at these horizons).
 2. Extend the existing comment-9 annex with «Análisis de activación del mecanismo scout»: the activation table above (or its `fig6_pfa_activacion` counterpart), one paragraph stating that activation is governed by search stagnation rather than market volatility, and the observation that recovery quality — not just activation frequency — determines value (the mt=9 vs. corrected-move contrast).
 3. Cite the v2 line as future work exactly as `pfa_sensitivity.md` §5 already frames it: a joint `max_trials`-and-move calibration with honest multiple-testing control, now implemented in the repository (`ABCAdaptiveScout`, telemetry, and the `hive_abc.calibration` framework).
 
-This keeps the document's claims conservative while showing the committee that the observed limitation became a designed, measured, and reproducible research line.
+This keeps the document's claims conservative while showing that the observed limitation became a designed, measured, and reproducible research line.

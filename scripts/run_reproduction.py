@@ -1,8 +1,8 @@
 """Runs the full thesis reproduction: every period x universe, all models.
 
 Produces one JSON per (universe, period) with the canonical metric schema,
-plus a consolidated `reproduction_summary.json` including execution times
-(reviewer task 14). The Tier-2 pytest suite (`-m repro`) consumes these same
+plus a consolidated `reproduction_summary.json` including execution times.
+The Tier-2 pytest suite (`-m repro`) consumes these same
 runs through the library API; this script is the human-facing artifact
 generator.
 

@@ -1,4 +1,4 @@
-"""Scout-activation telemetry diagnostic (reviewer task 9 follow-up).
+"""Scout-activation telemetry diagnostic.
 
 First diagnostic built on the v2 scout instrumentation: every optimizer run
 now reports `scout_activations` / `scout_activation_iterations` first-class
@@ -565,13 +565,13 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
     ].sum()
 
     md = [
-        "# Scout-activation telemetry diagnostic (reviewer task 9 follow-up)",
+        "# Scout-activation telemetry diagnostic",
         "",
         f"Generated {today} by `scripts/run_scout_activation_telemetry.py` "
         f"({seeds} paired seeds per configuration, identical seeds across "
         "configurations; both universes, all four thesis periods).",
         "",
-        "Reviewer comment 9 established that the thesis's FAEM scout never "
+        "The PFA sensitivity analysis established that the thesis's FAEM scout never "
         "activates under the calibrated configuration, and "
         "[`pfa_sensitivity.md`](pfa_sensitivity.md) §5 committed to a future "
         "line: study when elite-guided recovery is worth activating. This "
@@ -611,7 +611,7 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "",
         activations.to_markdown(floatfmt=".1f"),
         "",
-        "ABC original and frozen ABC-FAEM confirm reviewer task 9 exactly: "
+        "ABC original and frozen ABC-FAEM confirm the PFA sensitivity finding exactly: "
         "**zero activations in every canonical-configuration cell** — the "
         "proposed recovery mechanics never execute. The proportional "
         "triggers make the scout phase operational at a controlled, "
@@ -696,7 +696,8 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "(`wᵀμ − 0.7·CVaR₀.₉₉ − η‖w‖₁ − λ_card·card`), the optimizer's own "
         "currency; separates search quality from financial outcome.",
         "- **Scout activations per run** — the new telemetry; the quantity "
-        "reviewer task 9 could only tabulate indirectly is now a first-class "
+        "the PFA sensitivity analysis could only tabulate indirectly is now a "
+        "first-class "
         "run diagnostic.",
         "- **Wilcoxon signed-rank (paired seeds)** — the thesis's own "
         "significance methodology (comment 10). Holm–Bonferroni and the "
@@ -713,7 +714,7 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "",
         "1. Keep the frozen results and their conclusions exactly as they "
         "are (the calibration legitimately preferred pure exploitation at "
-        "these horizons; task 9's defense stands).",
+        "these horizons).",
         "2. Extend the existing comment-9 annex with «Análisis de activación "
         "del mecanismo scout»: the activation table above (or its "
         "`fig6_pfa_activacion` counterpart), one paragraph stating that "
@@ -728,7 +729,7 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "telemetry, and the `hive_abc.calibration` framework).",
         "",
         "This keeps the document's claims conservative while showing the "
-        "committee that the observed limitation became a designed, measured, "
+        "that the observed limitation became a designed, measured, "
         "and reproducible research line.",
         "",
     ]

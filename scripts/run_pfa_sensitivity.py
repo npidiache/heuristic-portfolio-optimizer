@@ -1,14 +1,14 @@
-"""PFA sensitivity analysis on ABC-FAEM (reviewer task 9), with defense.
+"""PFA sensitivity analysis on ABC-FAEM, with mechanism analysis.
 
 Part 1 — local sensitivity around the executed thesis value: `p_fa` over a
 one-sided neighborhood below the frozen baseline 1.0, ABC-FAEM only, fixed
 fundamentals universe, all four thesis periods. Under the calibrated
 stagnation threshold the scout phase never activates, so the local sweep is
 provably invariant — the formal confirmation that the analysis "does not
-affect the final results". The reviewers' lower values {0.3, 0.4, 0.5} are
+affect the final results". The lower values {0.3, 0.4, 0.5} are
 kept as a secondary range check, not as the primary sensitivity grid.
 
-Part 2 — the defense of the mechanism (why the parameter exists):
+Part 2 — why the parameter exists:
 
 - **Activation frequency**: how often the scout phase fires as a function of
   `max_trials`, locating the calibrated setting (300) in the never-fires
@@ -77,7 +77,7 @@ SUGGESTED_THESIS_WORDING = (
     "cuando una abeja alcanza la fase scout, el movimiento guiado por élites "
     "FAEM se aplica de forma determinística. La sensibilidad se evaluó en "
     "una vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y, "
-    "adicionalmente, en los valores sugeridos por los evaluadores ({0.3, 0.4, "
+    "adicionalmente, en valores extremos ({0.3, 0.4, "
     "0.5}). En ambos casos las métricas permanecen idénticas.",
     "La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con "
     "la calibración final, max_trials = 300, y con un presupuesto de 60 "
@@ -441,9 +441,7 @@ def related_work_markdown() -> str:
     Returns:
         Markdown bullets with each citation's role in the response.
     """
-    return "\n".join(
-        f"- **{citation}** — {role}" for citation, role in RELATED_WORK
-    )
+    return "\n".join(f"- **{citation}** — {role}" for citation, role in RELATED_WORK)
 
 
 def related_work_html() -> str:
@@ -482,7 +480,7 @@ def main() -> None:
 
     print(">> Part 1a: local calibrated sweep around p_fa=1.0")
     local = sweep(args.seeds, stressed=False, p_fa_values=LOCAL_P_FA_VALUES)
-    print(">> Part 1b: lower-value range check requested by reviewers")
+    print(">> Part 1b: lower-value range check")
     range_check = sweep(
         args.seeds,
         stressed=False,
@@ -499,11 +497,11 @@ def main() -> None:
     range_check_identical = sweeps_are_identical(range_check)
 
     md: list[str] = [
-        "# PFA sensitivity analysis — ABC-FAEM (reviewer task 9)",
+        "# PFA sensitivity analysis — ABC-FAEM",
         "",
         f"Generated {today} by `scripts/run_pfa_sensitivity.py` "
         f"({args.seeds} pinned seeds; fixed fundamentals universe; "
-        f"ABC-FAEM only, as the reviewer note requests).",
+        f"ABC-FAEM only).",
         "",
         "`p_fa` is the probabilistic trigger of ABC-FAEM's scout phase "
         "(thesis p. 21): with probability `p_fa` a stalled bee performs the "
@@ -536,7 +534,7 @@ def main() -> None:
         pivot(local, "max_drawdown").to_markdown(floatfmt=".3f"),
         "",
         "> [!IMPORTANT]",
-        '> <font color="#ff6b6b">**CONCLUSION (TASK 9)**</font>',
+        '> <font color="#ff6b6b">**CONCLUSION**</font>',
         "> The final thesis results are locally insensitive to the PFA "
         "trigger around the executed value `p_fa = 1.0`: with the calibrated "
         "stagnation threshold the probabilistic scout never activates, so "
@@ -544,7 +542,7 @@ def main() -> None:
         "supports the thesis conclusion without claiming that `p_fa` is "
         "globally irrelevant under different scout thresholds.",
         "",
-        "### Suggested wording for the thesis",
+        "### Resumen en espaÃ±ol",
         "",
         SUGGESTED_THESIS_WORDING[0],
         "",
@@ -552,7 +550,7 @@ def main() -> None:
         "",
         "### Lower-value range check",
         "",
-        "The reviewer-suggested lower values {0.3, 0.4, 0.5} are better "
+        "The lower values {0.3, 0.4, 0.5} are better "
         "reported as a distant range check, not as the main local "
         "sensitivity analysis. They are also bit-identical under the same "
         "calibrated configuration "
@@ -560,9 +558,9 @@ def main() -> None:
         "",
         pivot(range_check, "sortino").to_markdown(floatfmt=".3f"),
         "",
-        "## 2. Why the parameter exists — defense of the mechanism",
+        "## 2. Why the parameter exists",
         "",
-        "*Anticipated question: if `p_fa` changes nothing, what is the "
+        "*If `p_fa` changes nothing, what is the "
         "point of the parameter (and of the FAEM scout)?*",
         "",
         "**The inertness is a calibration outcome, not a design flaw.** The "
@@ -625,7 +623,7 @@ def main() -> None:
         "",
         related_work_markdown(),
         "",
-        "## 4. Defense summary (for the oral discussion)",
+        "## 4. Summary",
         "",
         "1. **Formally**: the local sweep around the executed value "
         "(`p_fa = 0.80/0.90/0.95/1.00`) leaves every reported number "
@@ -653,13 +651,13 @@ def main() -> None:
 
     html_sections = [
         (
-            "Conclusion (task 9)",
+            "Conclusion",
             notice(
                 "Under the calibrated thesis parameters the PFA trigger is "
                 "never exercised: the local grid near p_fa=1.0 is "
                 "bit-identical, and the lower 0.3/0.4/0.5 range check is "
                 "also unchanged. The final results are unaffected.",
-                label="TASK 9",
+                label="RESULT",
             ),
         ),
         ("Local calibrated sweep — Sortino", frame_to_html(pivot(local, "sortino"))),
@@ -668,7 +666,7 @@ def main() -> None:
             frame_to_html(pivot(range_check, "sortino")),
         ),
         (
-            "Suggested wording for the thesis",
+            "Resumen en espaÃ±ol",
             paragraphs_html(SUGGESTED_THESIS_WORDING),
         ),
         (
@@ -700,8 +698,7 @@ def main() -> None:
     (DOCS_DIR / "pfa_sensitivity.html").write_text(
         render_report(
             title="PFA sensitivity analysis",
-            subtitle="ABC-FAEM probabilistic trigger — reviewer task 9, with "
-            "mechanism defense",
+            subtitle="ABC-FAEM probabilistic trigger — with mechanism analysis",
             sections=html_sections,
             generated_note=f"generated {today} — {args.seeds} seeds, "
             "fixed universe, ABC-FAEM only",

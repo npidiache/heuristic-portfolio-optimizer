@@ -18,7 +18,7 @@
 
 ## Overview
 
-`hive_abc` formalizes the thesis *"Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony"* by **Norbey Pidiache & Luisa Ovalle**, submitted for the **Magíster en Finanzas at Universidad Externado de Colombia** (2026): four ABC-family metaheuristics optimize NASDAQ-100 portfolios under a multi-objective utility (return − CVaR − L1 − cardinality) across four volatility regimes — the COVID-19 crash, the 2008 Global Financial Crisis, the 2022 geopolitical shock, and the 2023–2024 stability window — against classical minimum-variance and 1/N benchmarks.
+`hive_abc` formalizes the thesis *"Optimización de portafolios mediante variantes del algoritmo Artificial Bee Colony"* by **Norbey Pidiache & Luisa Ovalle**, approved for the **Magíster en Finanzas at Universidad Externado de Colombia** (2026): four ABC-family metaheuristics optimize NASDAQ-100 portfolios under a multi-objective utility (return − CVaR − L1 − cardinality) across four volatility regimes — the COVID-19 crash, the 2008 Global Financial Crisis, the 2022 geopolitical shock, and the 2023–2024 stability window — against classical minimum-variance and 1/N benchmarks.
 
 The repository is built on four properties:
 
@@ -33,7 +33,7 @@ The repository is built on four properties:
 - [Methodology](#methodology)
 - [Canonical results](#canonical-results)
 - [Reproducing the thesis](#reproducing-the-thesis)
-- [Reviewer analyses](#reviewer-analyses)
+- [Supplementary analyses](#supplementary-analyses)
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
 - [Usage](#usage)
@@ -85,7 +85,7 @@ flowchart TD
     linkStyle 8 stroke:#FF6B6B,stroke-width:2px
 ```
 
-The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters (reviewer tasks 4–5) are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).
+The full stage-by-repo map, including the four documented deviations from the legacy pipeline, is in [`docs/thesis/methodology.md`](docs/thesis/methodology.md); the executed objective and its parameters are derived in [`docs/thesis/objective_function.md`](docs/thesis/objective_function.md). The per-regime algorithm parameters come from the thesis's multi-regime robust calibration (synthetic stress scenarios, worst-case Sortino, seed-period consensus) — provenance and every parameter definition in [`docs/thesis/calibration.md`](docs/thesis/calibration.md).
 
 ## Canonical results
 
@@ -124,16 +124,16 @@ Three regression tiers keep the results frozen:
 
 Bitwise equality with the thesis tables is impossible by design — the legacy harness drew unpinned seeds — so Tier 2 asserts calibrated statistical bands instead; the reasoning is documented in [`tests/reproduction_test.py`](tests/reproduction_test.py).
 
-## Reviewer analyses
+## Supplementary analyses
 
-Annex-ready material for the reviewers' comments (tracker: [`thesis/committee_tasks.md`](thesis/committee_tasks.md)):
+Annex-ready analyses that complement the thesis document:
 
-| Task | Deliverable | Headline |
+| Topic | Deliverable | Headline |
 | --- | --- | --- |
-| 4 + 5 | [`objective_function.md`](docs/thesis/objective_function.md) | Eq. 13 (preference) vs. Eq. 18 (executed scalarization); λ = 0.7, α = 0.99, η = 5·10⁻⁴, λ_card = 0.008·n/20 |
-| 9 | [`pfa_sensitivity.md`](docs/analysis/pfa_sensitivity.md) | FAEM is a post-stagnation intervention; under calibrated parameters the scout phase never activates, so results are provably identical for p_fa ∈ {0.3, 0.4, 0.5, 1.0} |
-| 12 | [`filter_comparison.md`](docs/analysis/filter_comparison.md) | The z-score filter is a crisis-defense mechanism: +2.35/+0.57 Sortino in COVID/GFC, −1.37/−0.45 in calm regimes |
-| 14 | [`reproduction_report.md`](docs/analysis/reproduction_report.md) | Execution-times table per model × configuration |
+| Objective function | [`objective_function.md`](docs/thesis/objective_function.md) | Eq. 13 (preference) vs. Eq. 18 (executed scalarization); λ = 0.7, α = 0.99, η = 5·10⁻⁴, λ_card = 0.008·n/20 |
+| PFA sensitivity | [`pfa_sensitivity.md`](docs/analysis/pfa_sensitivity.md) | FAEM is a post-stagnation intervention; under calibrated parameters the scout phase never activates, so results are provably identical for p_fa ∈ {0.3, 0.4, 0.5, 1.0} |
+| Selection filter | [`filter_comparison.md`](docs/analysis/filter_comparison.md) | The z-score filter is a crisis-defense mechanism: +2.35/+0.57 Sortino in COVID/GFC, −1.37/−0.45 in calm regimes |
+| Execution times | [`reproduction_report.md`](docs/analysis/reproduction_report.md) | Execution-times table per model × configuration |
 
 ## Project structure
 
@@ -151,11 +151,11 @@ heuristic-portfolio-optimizer/
 ├── tests/                 # mirrors src/; *_test.py; golden/ Tier-3 file
 ├── data/frozen/           # committed input data (checksummed, immutable)
 ├── data/canonical/        # frozen thesis results (checksummed, immutable)
-├── thesis/                # frozen thesis document + reviewer task tracker
+├── thesis/                # approved thesis document + presentation
 ├── legacy/                # verbatim pre-refactor code (provenance only)
 ├── docs/thesis/           # objective function, naming, methodology notes
 ├── docs/analysis/         # committed analysis deliverables (md + html)
-├── scripts/               # thin entry points (reproduction, task 9, task 12)
+├── scripts/               # thin entry points (reproduction, sensitivity, figures)
 └── .github/workflows/     # PR coverage gate + dispatchable full reproduction
 ```
 
@@ -204,7 +204,7 @@ print(outcome.models["ABC_FA_Scout"].sortino)
 
 ## Roadmap
 
-- **v1.x (academic)** — the thesis formalization: frozen results, reviewer annexes, reproduction suite. *This release.*
+- **v1.x (academic)** — the thesis formalization: frozen results, analysis annexes, reproduction suite. *This release.*
 - **v2 (heuristic portfolio optimizer)** — additional metaheuristics (PSO, GA, simulated annealing) behind the same `HeuristicOptimizer` contract; rebalancing backtests; a strategy-comparison CLI. The `core/` seam exists so none of this touches the frozen v1 surface.
 
 ## Contributing

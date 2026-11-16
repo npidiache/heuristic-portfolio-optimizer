@@ -25,3 +25,8 @@ outputs/
 .DS_Store
 Thumbs.db
 thesis/ABC_Thesis_Presentation_v2.html
+
+# Local working files (thesis drafts, agent scratch)
+.codex_*/
+docs/thesis/*.docx
+~$*

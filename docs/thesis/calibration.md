@@ -1,8 +1,8 @@
-# Parameter provenance: the regime calibration (reviewer task 3)
+# Parameter provenance: the regime calibration
 
-The reviewers noted (task 3) that the comparative table on p. 15 mentions
-parameters such as `b0` and `max_trials` that *"are never defined or
-explained in the later formulation"*. This note is the missing section: it
+The comparative table on p. 15 of the thesis mentions
+parameters such as `b0` and `max_trials` without defining them in the
+later formulation. This note fills that gap: it
 defines every algorithm parameter and documents where the executed values
 come from — the multi-regime robust calibration pipeline
 (`legacy/robust_calibration_pipeline.py`, methodology in
@@ -22,7 +22,7 @@ come from — the multi-regime robust calibration pipeline
 | `alpha` (α) | `alpha` | Randomization amplitude of the move (`α·(u−0.5)` per dimension) | ABC-FA, ABC-FAEM, ABC-GSA |
 | `k_top` | `k_top` | Elite pool size for the FAEM scout's leader sampling (fixed at 3 in the thesis runs) | ABC-FAEM |
 | `softmax_tau` (τ) | `softmax_tau` | Softmax temperature over elite fitness (fixed at 1.0) | ABC-FAEM |
-| `p_fa` (PFA) | `p_fa` | Probability that the FA elite move fires instead of a random restart (task 9; 1.0 in the frozen runs) | ABC-FAEM |
+| `p_fa` (PFA) | `p_fa` | Probability that the FA elite move fires instead of a random restart (1.0 in the frozen runs) | ABC-FAEM |
 | `G` | `g_constant` | Gravitational constant scaling pairwise attraction between bees | ABC-GSA |
 | `epsilon` (ε) | `epsilon` | Numeric guard for near-zero distances in the force computation | ABC-GSA |
 
@@ -86,7 +86,7 @@ the canonical runs**, so the calibrated configurations effectively favor
 pure employed/onlooker exploitation, and the performance differences between
 ABC, ABC-FAEM, and ABC-GSA in the result tables stem from their distinct
 random streams rather than their scout mechanics. This is also why the PFA
-trigger is provably inert in the final results (reviewer task 9 —
+trigger is provably inert in the final results (see
 [`docs/analysis/pfa_sensitivity.md`](../analysis/pfa_sensitivity.md), whose
 stressed annex shows the mechanisms at work when `max_trials` is small, as
 in the exploratory grids that searched `max_trials ∈ [8, 25]`).

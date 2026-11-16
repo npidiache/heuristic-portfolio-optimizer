@@ -1,13 +1,13 @@
-# The objective function: Eq. 13 vs. Eq. 18 (reviewer tasks 4 and 5)
+# The objective function: Eq. 13 vs. Eq. 18
 
-This note resolves two reviewer comments on the thesis document:
+This note answers two questions about the thesis document:
 
-- **Task 4** — *"Is the multi-objective utility function (Eq. 13) the same
+- *"Is the multi-objective utility function (Eq. 13) the same
   as the fitness function (Eq. 18)? Should they be equal?"*
-- **Task 5** — *"Eq. 13 integrates Sortino, Omega, CVaR and HHI, but the
+- *"Eq. 13 integrates Sortino, Omega, CVaR and HHI, but the
   penalty weights λ and η are never defined."*
 
-## 1. The two equations are related but not identical (task 4)
+## 1. The two equations are related but not identical
 
 **Eq. 13 (documented utility)** describes the *conceptual* multi-objective
 preference the thesis optimizes for: reward per unit of downside risk
@@ -39,7 +39,7 @@ The mapping between the two:
 | HHI concentration penalty | `λ_card · card(w)` quadratic penalty above a target holding count | The executed harness controls concentration through cardinality, not HHI; HHI is reported as a *metric* in the results tables |
 | Diversification (weight η) | `η · ‖w‖₁`, η = 5·10⁻⁴ | For a normalized long-only portfolio `‖w‖₁ = 1`, so this term is a constant offset in the frozen runs; it becomes active only if short positions are ever allowed |
 
-**Answer to the reviewers:** they are not, and need not be, the same
+**Answer:** they are not, and need not be, the same
 function. Eq. 13 states the investor preference; Eq. 18 is its executable
 scalarization inside the metaheuristic, and Sortino/Omega/HHI re-enter as
 *evaluation metrics* on the optimized portfolios (the tables of §Resultados).
@@ -47,7 +47,7 @@ The thesis text should state this explicitly and cross-reference the two
 equations. What must hold — and does — is that both express the same
 preference direction: more return, less tail risk, less concentration.
 
-## 2. The executed parameter values (task 5)
+## 2. The executed parameter values
 
 Frozen in code as `hive_abc.objectives.UtilityParams` (defaults) and
 verified by unit tests:
@@ -63,7 +63,7 @@ verified by unit tests:
 
 Notes for the thesis text:
 
-- **CVaR vs. Expected Shortfall (reviewer comment 7):** the two names
+- **CVaR vs. Expected Shortfall:** the two names
   refer to the *same* risk measure — Conditional Value-at-Risk is also
   called Expected Shortfall (and Average Value-at-Risk) in the literature
   (Rockafellar & Uryasev, 2000). The thesis text can use either, but should

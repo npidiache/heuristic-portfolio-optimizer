@@ -1,6 +1,6 @@
-# PFA sensitivity analysis — ABC-FAEM (reviewer task 9)
+# PFA sensitivity analysis — ABC-FAEM
 
-Generated 2026-07-04 by `scripts/run_pfa_sensitivity.py` (20 pinned seeds; fixed fundamentals universe; ABC-FAEM only, as the reviewer note requests).
+Generated 2026-07-04 by `scripts/run_pfa_sensitivity.py` (20 pinned seeds; fixed fundamentals universe; ABC-FAEM only).
 
 `p_fa` is the probabilistic trigger of ABC-FAEM's scout phase (thesis p. 21): with probability `p_fa` a stalled bee performs the firefly move toward a softmax-selected elite; with probability `1 − p_fa` it performs the original ABC random restart. `p_fa = 1.0` is the frozen thesis behavior; `p_fa = 0.0` degenerates exactly to the original ABC scout.
 
@@ -29,12 +29,12 @@ Under the calibrated stagnation threshold (`max_trials = 0.6 × 25 bees × 20 as
 | war_2022       | -0.145 | -0.145 | -0.145 | -0.145 |
 
 > [!IMPORTANT]
-> <font color="#ff6b6b">**CONCLUSION (TASK 9)**</font>
+> <font color="#ff6b6b">**CONCLUSION**</font>
 > The final thesis results are locally insensitive to the PFA trigger around the executed value `p_fa = 1.0`: with the calibrated stagnation threshold the probabilistic scout never activates, so the parameter is empirically inactive in the canonical runs. This supports the thesis conclusion without claiming that `p_fa` is globally irrelevant under different scout thresholds.
 
-### Suggested wording for the thesis
+### Resumen en espaÃ±ol
 
-En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir, cuando una abeja alcanza la fase scout, el movimiento guiado por élites FAEM se aplica de forma determinística. La sensibilidad se evaluó en una vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y, adicionalmente, en los valores sugeridos por los evaluadores ({0.3, 0.4, 0.5}). En ambos casos las métricas permanecen idénticas.
+En todas las ejecuciones reportadas se utilizó p_fa = 1.0; es decir, cuando una abeja alcanza la fase scout, el movimiento guiado por élites FAEM se aplica de forma determinística. La sensibilidad se evaluó en una vecindad local del valor ejecutado ({0.80, 0.90, 0.95, 1.00}) y, adicionalmente, en valores extremos ({0.3, 0.4, 0.5}). En ambos casos las métricas permanecen idénticas.
 
 La razón es mecánica: p_fa solo interviene dentro de la fase scout. Con la calibración final, max_trials = 300, y un horizonte de ejecución de 60 iteraciones, esa fase no se activa en las corridas canónicas. Por tanto, modificar p_fa no cambia la trayectoria efectiva del algoritmo ni los resultados financieros reportados. Esta evidencia respalda mantener la configuración calibrada de la tesis.
 
@@ -42,7 +42,7 @@ Esto no significa que el algoritmo "requiera 300 iteraciones para funcionar", si
 
 ### Lower-value range check
 
-The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a distant range check, not as the main local sensitivity analysis. They are also bit-identical under the same calibrated configuration (verified: True):
+The lower values {0.3, 0.4, 0.5} are better reported as a distant range check, not as the main local sensitivity analysis. They are also bit-identical under the same calibrated configuration (verified: True):
 
 | period         |   0.3 |   0.4 |   0.5 |   1.0 |
 |:---------------|------:|------:|------:|------:|
@@ -51,9 +51,9 @@ The reviewer-suggested lower values {0.3, 0.4, 0.5} are better reported as a dis
 | gfc_2007_2009  | 0.399 | 0.399 | 0.399 | 0.399 |
 | war_2022       | 0.661 | 0.661 | 0.661 | 0.661 |
 
-## 2. Why the parameter exists — defense of the mechanism
+## 2. Why the parameter exists
 
-*Anticipated question: if `p_fa` changes nothing, what is the point of the parameter (and of the FAEM scout)?*
+*If `p_fa` changes nothing, what is the point of the parameter (and of the FAEM scout)?*
 
 **The inertness is a calibration outcome, not a design flaw.** The robust multi-regime calibration (see `docs/thesis/calibration.md`) selected `max_trials_factor = 0.6` under a worst-case-Sortino criterion — i.e., the data determined that in these portfolio problems, within 60 iterations, sustained exploitation without restarts is optimal. The scout mechanism is the algorithm's *contingency* against stagnation, and the calibration set its activation threshold so high that the contingency was never needed in-sample. The exploratory grids did search the active region (`max_trials ∈ [8, 25]`) and the calibration rejected it. The evidence below characterizes the mechanism in both regions.
 
@@ -142,7 +142,7 @@ Use these sources to position the answer: ABC establishes why the scout phase is
 - **Saltelli et al. (2008)** — sensitivity-analysis framing: perturb the input whose effect is being claimed; because p_fa is bounded above at 1.0, the local test is necessarily one-sided below the executed value.
 - **Wilcoxon (1945)** — paired non-parametric comparison used for the per-seed stochastic diagnostic when the scout mechanism is forced active.
 
-## 4. Defense summary (for the oral discussion)
+## 4. Summary
 
 1. **Formally**: the local sweep around the executed value (`p_fa = 0.80/0.90/0.95/1.00`) leaves every reported number unchanged — bit-identical, not merely statistically indistinguishable — because the calibrated stagnation threshold keeps the trigger dormant (§1, §2a). The lower `0.3/0.4/0.5` range check reaches the same result but should not be the main robustness claim.
 2. **Mechanistically**: `p_fa` is the knob of a calibrated contingency subsystem. The calibration, not the authors, decided the contingency was unnecessary for these horizons — an empirical finding about the problem class (exploitation-dominant landscapes), documented in `docs/thesis/calibration.md`.

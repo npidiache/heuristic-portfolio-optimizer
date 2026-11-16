@@ -23,7 +23,7 @@ class ABCFAEM(BeeHive):
     exploration guided by elite information without collapsing onto a single
     leader. Hybridization concept follows Tuba & Bacanin (2014).
 
-    The probabilistic trigger `p_fa` (thesis p. 21, reviewer task 9)
+    The probabilistic trigger `p_fa` (thesis p. 21)
     gates the mechanism: with probability `p_fa` the stalled bee performs the
     FA elite move; otherwise it falls back to the classic random restart.
     The frozen thesis runs fired the FA move unconditionally, so the default

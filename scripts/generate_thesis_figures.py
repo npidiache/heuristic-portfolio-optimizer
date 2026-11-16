@@ -1,4 +1,4 @@
-"""Generates the branded thesis figures (reviewer comment 15).
+"""Generates the branded thesis figures.
 
 Produces print-ready PNGs (300 dpi, Obsidian Aqua palette, Spanish labels —
 they are destined for the Word document) under `docs/figures/`. Every figure
@@ -346,7 +346,7 @@ def fig_filter_comparison() -> None:
 
 
 def fig_pfa_activation() -> None:
-    """Fig. 6 (anexo) — scout activation frequency vs. max_trials (task 9)."""
+    """Fig. 6 (anexo) — scout activation frequency vs. max_trials."""
     from run_pfa_sensitivity import (  # type: ignore[import-not-found]  # noqa: E402
         activation_frequency,
     )

@@ -234,7 +234,7 @@ print(outcome.models["ABC_FA_Scout"].sortino)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) — uv workflow, ruff/mypy-strict/90%-coverage gates, the frozen-results contract, and the PR checklist. Agent instructions live in [CLAUDE.md](CLAUDE.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) — uv workflow, ruff/mypy-strict/90%-coverage gates, the frozen-results contract, and the PR checklist.
 
 ## References and citation
 

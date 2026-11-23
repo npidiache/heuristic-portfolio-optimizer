@@ -24,9 +24,9 @@ outputs/
 # OS
 .DS_Store
 Thumbs.db
-thesis/ABC_Thesis_Presentation_v2.html
 
 # Local working files (thesis drafts, agent scratch and instructions)
+thesis/ABC_Thesis_Presentation_v2.html
 CLAUDE.md
 AGENTS.md
 .codex_*/

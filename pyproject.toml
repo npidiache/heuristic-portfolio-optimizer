@@ -73,7 +73,7 @@ ignore_missing_imports = true
 addopts = "--cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=90 -m 'not repro and not slow and not parity'"
 testpaths = ["tests"]
 markers = [
-    "repro: full thesis-reproduction runs (hours; executed via reproduction.yml)",
+    "repro: full thesis-reproduction runs (about a minute; also run by reproduction.yml)",
     "slow: long-running tests excluded from the default and CI runs",
     "parity: one-off metric-parity checks against quantstats (needs parity group)",
 ]

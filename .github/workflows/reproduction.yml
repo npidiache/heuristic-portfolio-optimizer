@@ -1,9 +1,9 @@
 name: reproduction
 
 # Full thesis reproduction: 20 pinned seeds x 4 periods x 2 universes across the
-# six canonical models, then the Tier-2 tolerance + ordinal assertions. This is
-# a multi-hour job, so it never runs on PRs — dispatch it manually (or via the
-# monthly cron) whenever the optimizer or objective code changes.
+# six canonical models, then the Tier-2 tolerance + ordinal assertions. It takes
+# about a minute but is kept off PRs — dispatch it manually (or via the monthly
+# cron) whenever the optimizer or objective code changes.
 on:
   workflow_dispatch:
   schedule:

@@ -15,12 +15,12 @@ uv sync --dev
 ```bash
 uv run pytest                      # default suite (90% branch coverage gate)
 uv run pytest tests/algorithms     # a subset
-uv run pytest -m repro             # full thesis reproduction (hours)
+uv run pytest -m repro             # full thesis reproduction (about a minute)
 uv run pytest -m parity            # metric parity vs quantstats (needs: uv sync --group parity)
 ```
 
 The default run excludes the `repro`, `slow`, and `parity` markers — those are
-long or environment-dependent and run through
+slower or environment-dependent and run through
 [`reproduction.yml`](.github/workflows/reproduction.yml) or on demand.
 
 ### Coverage

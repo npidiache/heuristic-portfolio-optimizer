@@ -11,8 +11,8 @@ with paired seeds and Wilcoxon tests against ABC original.
 Runs optimizers directly against `PortfolioUtilityObjective` (the
 `ABCEpsilonScout` precedent) — the backtest engine and its default model
 registry are untouched. A formal hypothesis-test section applies
-Holm-Bonferroni correction and the deflated Sharpe ratio (the SG-3
-statistics, commit d87db66) to the winning configuration. Writes
+Holm-Bonferroni correction and the deflated Sharpe ratio to the winning
+configuration. Writes
 `docs/analysis/scout_activation_telemetry.md` and `.html`.
 """
 
@@ -494,7 +494,7 @@ def formal_verdict(report: pd.DataFrame, winner: str) -> str:
         f"cells (minimum {min_dsr:.3f}). The hypothesis therefore {outcome}. "
         "Scope caveats: windows are evaluated in-sample under the thesis "
         "conventions, and the deflation covers the seven configurations "
-        "tested here rather than the full design space — the SG-5 "
+        "tested here rather than the full design space — the "
         "walk-forward study remains the confirmatory step."
     )
 
@@ -527,7 +527,7 @@ def verdict(summary: pd.DataFrame, tests: pd.DataFrame) -> str:
         f"the prior diagnostic's best (`{ACTIVE_BAR}`). Of its 8 paired "
         f"Wilcoxon tests against ABC original, {n_sig} are significant at "
         f"5% ({n_sig_wins} in its favor). §4 applies the formal "
-        "Holm/deflated-Sharpe control to this grid; the SG-5 walk-forward "
+        "Holm/deflated-Sharpe control to this grid; the walk-forward "
         "study owns the confirmatory claim under calibrated policies."
     )
 
@@ -575,14 +575,14 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "activates under the calibrated configuration, and "
         "[`pfa_sensitivity.md`](pfa_sensitivity.md) §5 committed to a future "
         "line: study when elite-guided recovery is worth activating. This "
-        "diagnostic is the first result of that line, built on two v2 "
-        "additions (branch `feat/abc-scout-v2`):",
+        "diagnostic is the first result of that line, built on the "
+        "following additions:",
         "",
-        "- **First-class activation telemetry** (commit `21e7042`): every "
+        "- **First-class activation telemetry**: every "
         "`optimize()` run reports `scout_activations` and "
         "`scout_activation_iterations` on `OptimizationResult`, so activation "
         "is now measured, not inferred.",
-        "- **`ABCAdaptiveScout`** (commit `c10387a`): a pluggable scout phase "
+        "- **`ABCAdaptiveScout`**: a pluggable scout phase "
         "— a `ScoutTrigger` decides *who* scouts (budget-proportional trial "
         "limits, diversity collapse) and a `ScoutMove` decides *where* the "
         "scout goes (corrected-scaling firefly elite move, Lévy flights, "
@@ -592,8 +592,8 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "typical inter-bee distances, i.e. the elite move degenerated to "
         "noise; normalized, it retains ≈ 0.85 attraction at the same "
         "distance. v1 classes are byte-stable (Tier-1/2/3 guards green).",
-        "- **Selection statistics and calibration framework** (commits "
-        "`d87db66`, `bdbef99`): Holm–Bonferroni, probabilistic/deflated "
+        "- **Selection statistics and calibration framework**: "
+        "Holm–Bonferroni, probabilistic/deflated "
         "Sharpe ratios, and the `hive_abc.calibration` walk-forward runner — "
         "§4 applies the statistics to this grid.",
         "",
@@ -700,37 +700,12 @@ def write_report(artifacts: GridArtifacts, seeds: int) -> None:
         "first-class "
         "run diagnostic.",
         "- **Wilcoxon signed-rank (paired seeds)** — the thesis's own "
-        "significance methodology (comment 10). Holm–Bonferroni and the "
-        "deflated Sharpe ratio (`hive_abc.metrics`, SG-3) are applied in "
-        "§4; the SG-5 walk-forward study remains the confirmatory gate.",
+        "significance methodology. Holm–Bonferroni and the "
+        "deflated Sharpe ratio (`hive_abc.metrics`) are applied in "
+        "§4; the walk-forward study remains the confirmatory gate.",
         "- Max drawdown / Jensen α / Omega are deliberately deferred to the "
         "calibrated study — the full canonical metric set belongs with the "
         "engine-integrated comparison, not this direct-run diagnostic.",
-        "",
-        "## 7. Recommendation for the thesis document",
-        "",
-        "**Yes — add a short activation-analysis subsection, but as an annex "
-        "extension, not a results-chapter change.** Concretely:",
-        "",
-        "1. Keep the frozen results and their conclusions exactly as they "
-        "are (the calibration legitimately preferred pure exploitation at "
-        "these horizons).",
-        "2. Extend the existing comment-9 annex with «Análisis de activación "
-        "del mecanismo scout»: the activation table above (or its "
-        "`fig6_pfa_activacion` counterpart), one paragraph stating that "
-        "activation is governed by search stagnation rather than market "
-        "volatility, and the observation that recovery quality — not just "
-        "activation frequency — determines value (the mt=9 vs. "
-        "corrected-move contrast).",
-        "3. Cite the v2 line as future work exactly as "
-        "`pfa_sensitivity.md` §5 already frames it: a joint "
-        "`max_trials`-and-move calibration with honest multiple-testing "
-        "control, now implemented in the repository (`ABCAdaptiveScout`, "
-        "telemetry, and the `hive_abc.calibration` framework).",
-        "",
-        "This keeps the document's claims conservative while showing the "
-        "that the observed limitation became a designed, measured, "
-        "and reproducible research line.",
         "",
     ]
 

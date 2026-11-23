@@ -13,6 +13,7 @@
 | `nasdaq_prices_2000_2025.csv` | Daily close prices for the NASDAQ-100 constituents, 2000-01-03 → 2024-12-31 | Downloaded once for the thesis experiments and frozen here |
 | `nasdaq_metadata.csv` | Per-ticker coverage: start/end date, day counts, price stats, missing days | Derived from the price file |
 | `z_score.csv` | Fixed top-20 universe ranked by financial-fundamentals z-score (semicolon-delimited) | Fundamentals screen described in thesis §Metodología |
+| `benchmark_ixic_2007_2024.csv` | Daily closes of the NASDAQ Composite (^IXIC), 2007-01-03 → 2024-12-31; the Jensen-alpha benchmark | Downloaded from Yahoo Finance on 2026-07-04 and frozen here, replacing the original pipeline's runtime download |
 
 ## `canonical/` — frozen thesis results
 

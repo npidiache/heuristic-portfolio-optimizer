@@ -1,5 +1,7 @@
 # Anexo A. Diagnóstico y rediseño del mecanismo explorador en el algoritmo ABC
 
+*Versión en inglés: [`annex_scout_activation.md`](annex_scout_activation.md).*
+
 > Este anexo presenta un análisis diagnóstico complementario sobre la activación del
 > mecanismo explorador (*scout*) y una línea de extensión basada en un reinicio de
 > Dirichlet. Las cifras de activación y desempeño se obtienen mediante ejecuciones

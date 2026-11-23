@@ -9,8 +9,7 @@ fixed-universe tables under two universes:
   same liquidity/history screen, WITHOUT the z-score ranking — i.e., the
   selection stage is removed but everything else is identical.
 
-Writes `docs/analysis/filter_comparison.md` and `.html` (annex-ready detail;
-the thesis body only needs the brief mention).
+Writes `docs/analysis/filter_comparison.md` and `.html`.
 """
 
 # --------------------------------------------------------------------------------------

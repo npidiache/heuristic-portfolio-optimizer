@@ -34,7 +34,7 @@ dev = [
 figures = [
     "matplotlib~=3.11.0",
 ]
-# Metric-parity checks against quantstats run once during migration (Phase 2);
+# Metric-parity checks against quantstats run on demand;
 # quantstats is not a runtime dependency, so it lives in its own optional group.
 parity = [
     "quantstats>=0.0.62",

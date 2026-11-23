@@ -209,7 +209,7 @@ def main() -> None:
         "",
     ]
     html_sections.append(
-        ("Portfolio cardinality (comment 11)", frame_to_html(cardinalities, "{:d}"))
+        ("Portfolio cardinality", frame_to_html(cardinalities, "{:d}"))
     )
 
     wilcoxon_frame = wilcoxon_section(summary)
@@ -228,7 +228,7 @@ def main() -> None:
     ]
     html_sections.append(
         (
-            "Wilcoxon significance (comment 10)",
+            "Wilcoxon significance",
             frame_to_html(wilcoxon_frame.set_index("configuration"), "{:.4f}"),
         )
     )

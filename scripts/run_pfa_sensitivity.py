@@ -436,7 +436,7 @@ def pivot(frame: pd.DataFrame, metric: str) -> pd.DataFrame:
 
 def related_work_markdown() -> str:
     """
-    Formats the comment-9 reference map for the markdown report.
+    Formats the related-work reference map for the markdown report.
 
     Returns:
         Markdown bullets with each citation's role in the response.
@@ -446,7 +446,7 @@ def related_work_markdown() -> str:
 
 def related_work_html() -> str:
     """
-    Formats the comment-9 reference map for the HTML report.
+    Formats the related-work reference map for the HTML report.
 
     Returns:
         An HTML unordered list with each citation's role.
